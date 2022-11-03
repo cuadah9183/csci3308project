@@ -1,0 +1,13 @@
+TA Meeting Notes
+
+11-2-2022
+
+What we talked about:
+For every user story, our commits should be on a separate branch and not the main branch. Make sure to add commit messages.
+Make sure to commit 3 times a week. Does not expect us to commit every day.
+Include release notes by the end of each week. Depending on the functional deliverable for the week. EX: front end, back end, API deliverables.
+Update your readme and release notes. Deliverable = functional in nature. The main branch code needs to always be in working condition. 
+Make sure all group members contribute equally.
+Epics are created using labels.Change web page development on the project board.
+Login/Logout are mandatory.  
+
