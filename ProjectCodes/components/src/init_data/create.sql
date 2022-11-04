@@ -1,4 +1,4 @@
-CREATE TABLE user(
+CREATE TABLE users (
     userID SERIAL PRIMARY KEY,
     username VARCHAR(45) NOT NULL,
     password VARCHAR(45) NOT NULL
@@ -17,13 +17,13 @@ CREATE TABLE recipe(
 CREATE TABLE log(
     recipeID INT NOT NULL,
     userID INT NOT NULL,
-    time DATETIME NOT NULL,
+    time TIMESTAMP NOT NULL,
     servings INT DEFAULT 1,
     PRIMARY KEY(recipeID, userID),
     FOREIGN KEY(recipeID)
-        REFERENCES(recipe),
+        REFERENCES recipe(recipeID),
     FOREIGN KEY(userID)
-        REFERENCES(user)
+        REFERENCES users(userID)
 );
 
 CREATE TABLE library(
@@ -31,7 +31,7 @@ CREATE TABLE library(
     userID INT NOT NULL,
     PRIMARY KEY(recipeID, userID),
     FOREIGN KEY(recipeID)
-        REFERENCES(recipe),
+        REFERENCES recipe(recipeID),
     FOREIGN KEY(userID)
-        REFERENCES(user)
-)
+        REFERENCES users(userID)
+);
