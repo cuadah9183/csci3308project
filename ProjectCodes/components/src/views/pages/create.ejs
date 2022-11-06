@@ -1,15 +1,17 @@
 <%- include ('../partials/header') %>
 <%- include ('../partials/menu') %>
 <div class="col"><%- include ('../partials/message') %></div>
-<main>
-  <div class="container" style="align:auto;margin-left:10%">
 
-	<form action="/login" method="get">
+
+<main>
+  <div class="container" style="width:80%;align:auto;margin-left:10%">
+
+	<form action="/create" method="post">
 		<table>
-		<tr><td col="2"><h2>Login to NutriLog</h2></td></tr>
+		<tr><td col="2"><h2>Create NutriLog Account</h2></td></tr>
 		<tr>
 		  <td style="text-align:left;width:100px">
-		  <label for="username">Username: </label>
+		  <label for="email">Username: </label>
 		  </td>
 		  <td style="text-align:left;width:200px">
 		  <input type="text" id="username" name="username">
@@ -24,10 +26,10 @@
 		  </td>
 		</tr>
 	
-		  <td><p style="font-size:11px;width:200px">Don't have an account? <a href="/create">Create Account</a></p></td>
+		  <td><p style="font-size:11px;width:200px">Already have an account? <a href="/login">Login</a></p></td>
 		  
 		  <td style="text-align:right">
-		  <input type="submit" value="Login" style="background-color:#2856D5;color:#fff">
+		  <input type="submit" value="Create Account" style="background-color:#2856D5;color:#fff">
 		  </td>
 		<tr/>
 	    </table>
