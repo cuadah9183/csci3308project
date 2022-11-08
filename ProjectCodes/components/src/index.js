@@ -176,7 +176,8 @@ app.get("/home", (req, res) => {
  });
 
 
-	
+//3rd party calls to Spoontacular https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
+//	
 		
 app.listen(3000);
 console.log('Server is listening on port 3000');
