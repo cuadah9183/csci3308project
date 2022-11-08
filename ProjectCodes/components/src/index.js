@@ -170,14 +170,61 @@ app.post("/create", async (req, res) => {
   }
 });
 
+// // Authentication Middleware.
+// const auth = (req, res, next) => {
+// 	if (!req.session.user) {
+// 	  // Return to login page
+// 	  return res.redirect('/');
+// 	}
+// 	next();
+//   };
+
+// // Authentication Required
+// app.use(auth);
+
 app.get("/home", (req, res) => {
 	  var username = req.query.username;
 	  console.log("username = " + username);
  });
 
+app.get("/recipebook", (req, res) => {
+	res.redirect('/discover');
+});
 
 //3rd party calls to Spoontacular https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
-//	
-		
+//TODO: integrate options into the request itself, and encode session variables for API_Key, API_Host
+app.get("/discover", (req, res) => {
+	const options = {
+		method: 'GET',
+		url: 'https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/complexSearch',
+		params: {
+		  query: 'egg',
+		},
+		headers: {
+		  'X-RapidAPI-Key': 'd9a69e76eemshcbf61c53dd16f62p197b80jsn7bd9b1cb406a',
+		  'X-RapidAPI-Host': 'spoonacular-recipe-food-nutrition-v1.p.rapidapi.com'
+		}
+	  };
+	  
+	axios.request(options).then(function (results) {
+		console.log(typeof results.data.results);
+		console.log(results.data)
+		res.render('pages/recipebook',{
+			results: results
+		})
+	})
+	.catch(function (error) {
+		console.error(error);
+		res.render('pages/recipebook',{
+			results: [],
+			error: true,
+			message: 'Spoontacular API call failed'
+		});
+	})
+});
+
+
+
+
 app.listen(3000);
 console.log('Server is listening on port 3000');

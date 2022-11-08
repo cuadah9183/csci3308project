@@ -5,13 +5,39 @@
 <main>
   <div class="container">
     <h1>Recipe Book</h1>
-	<h2><centre>Welcome User : <%= username %></centre></h2>
-    <form action="" method="GET">
-        <input name="recipe_name" type="text">
-        <input type="button">
+    <form action="/discover" method="GET">
+        <input type="submit" value="test spoontacular call">
     </form>
+    <!-- FOR EACH loop to populate the page with results from spoontacular call-->
+    <div class="container" style="padding-bottom: 55px">
+        <div class="row">
+            <div class="col"><h5>Name</h5></div>
+            <div class="col"><h5>Image</h5></div>
+            <div class="col"></div>
+        </div>
 
+        <% if (results) {
+            var listElement = '';
+            
+            results.data.results.forEach(function(recipe){
+                listElement += `
+                <div class="col">
+                    <p>`+ recipe.title +`</p>
+                </div>
+                <div class="col">
+                    <img style='height:100px' src='`+ recipe.image +`'\>
+                </div>
+                <div class="col">
+                    <form action="">
+                        <input type="submit" value="Add" />
+                    </form>
+                </div>
+                `;
+            });
+        } %>
 
+        <%- listElement %>
+    </div>
 </main>
 
 <%- include ('../partials/footer') %>
