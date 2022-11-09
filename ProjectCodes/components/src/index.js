@@ -6,6 +6,10 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const axios = require('axios');
 
+//globals for Spoontacular call limits. Only functional when index.js isnt going down and up repeatedly
+var numRequests = 0;
+var stampDate = Date.now();
+
 // database configuration
 const dbConfig = {
   host: 'db',
@@ -46,8 +50,6 @@ app.use(
   })
 );
 
-
-
 app.get('/', (req, res) => {
   res.redirect("/login");
 });
@@ -76,16 +78,16 @@ app.get('/login', async (req, res) =>{
 			console.log("req.query.password = " + req.query.password + ", row.password = " + row.password);
 			
 			if (req.query.password === row.password) {
-				// save api_key
-				//req.session.user = {
-				//  api_key: process.env.API_KEY,
-				//};
-				//req.session.save();
-				//console.log("passwords match, saving api_key " + process.env.API_KEY);
+				//save api_key
+				req.session.user = {
+				 api_key: process.env.API_KEY,
+				 api_host: process.env.API_HOST
+				};
+				req.session.save();
 				
 				//go to home page
-				res.redirect("/home", {
-					username
+				res.redirect("/home", 200, {
+					username: username
 				});
 			}
 			
@@ -170,13 +172,104 @@ app.post("/create", async (req, res) => {
   }
 });
 
+
+
+// Authentication Middleware.
+const auth = (req, res, next) => {
+	if (!req.session.user) {
+	  // Return to login page
+	  console.log('Not authenticated. Returning to login');
+	  
+	  //authentication redirect works as intended, but the error message doesnt display.
+	  return res.redirect('/',401,{
+		message: 'Please log in first!',
+		error: true,
+	  });
+	}
+	next();
+  };
+
+// Authentication Required
+app.use(auth);
+
+
+//username is always undefined here
 app.get("/home", (req, res) => {
 	  var username = req.query.username;
 	  console.log("username = " + username);
+	  res.render("pages/home",{
+		username: username
+	  });
  });
 
+//3rd party calls to Spoontacular https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
+//TODO: integrate options into the request itself, and encode session variables for API_Key, API_Host
+//TODO: Add recipe to library with modal. Need modal and login to work
+//500 requests a day for free. hardcord limit
 
+app.get("/discover",(req, res) => {
+	console.log('calling get /discover...');
 	
-		
+	if(Date.now() - stampDate >= 1000*60*60*24){
+		//24 hours or greater passed stampDate. Set stampDate to now to reset 24hr clock, reset call count
+		numRequests = 0;
+		stampDate = Date.now();
+	} else {
+		//iterate numRequests
+		numRequests += 1;
+		console.log("Request good. Number: " + numRequests);
+	}
+
+	//Some random values for populating discover with user input query
+	const randomFoods = ['American','Asian','Indian','Salad','Mexican','Eastern European','breakfast','lunch','dinner','healthy'];
+
+	//check for user input for the query. If none, use value from randomFoods
+	var qIn = '';
+	if(!req.query.queryIn){
+		qIn = randomFoods[Math.floor(Math.random() * 10)];
+	} else {
+		qIn = req.query.queryIn;
+	}
+
+	const options = {
+		method: 'GET',
+		url: 'https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/search',
+		params: {
+		  query: qIn
+		},
+		headers: {
+		  'X-RapidAPI-Key': 'd9a69e76eemshcbf61c53dd16f62p197b80jsn7bd9b1cb406a',
+		  'X-RapidAPI-Host': 'spoonacular-recipe-food-nutrition-v1.p.rapidapi.com'
+		}
+	  };
+
+	if(numRequests >= 500){
+		//dont call the request because it will cost me money (0.003$)
+		res.render('pages/discover',{
+			results:[],
+			error: true,
+			message: 'To many requests. Wait until tomorrow'
+		})
+	} else {
+	axios.request(options).then(function (results) {
+		// console.log(typeof results.data.results);
+		// console.log(results.data)
+		res.render('pages/discover',{
+			results: results
+		})
+	})
+	.catch(function (error) {
+		console.error(error);
+		res.render('pages/discover',{
+			results: [],
+			error: true,
+			message: 'Spoontacular API call failed'
+		});
+	})}
+});
+
+
+
+
 app.listen(3000);
 console.log('Server is listening on port 3000');
