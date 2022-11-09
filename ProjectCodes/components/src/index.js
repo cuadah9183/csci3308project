@@ -203,8 +203,8 @@ app.get("/home", (req, res) => {
  });
 
 //3rd party calls to Spoontacular https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
-//TODO: integrate options into the request itself, and encode session variables for API_Key, API_Host
 //TODO: Add recipe to library with modal. Need modal and login to work
+ //populate modal of nutritional information with another call?
 //500 requests a day for free. hardcord limit
 
 app.get("/discover",(req, res) => {
@@ -231,6 +231,7 @@ app.get("/discover",(req, res) => {
 		qIn = req.query.queryIn;
 	}
 
+	//input for call to 3rd party
 	const options = {
 		method: 'GET',
 		url: 'https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/search',
@@ -238,8 +239,8 @@ app.get("/discover",(req, res) => {
 		  query: qIn
 		},
 		headers: {
-		  'X-RapidAPI-Key': 'd9a69e76eemshcbf61c53dd16f62p197b80jsn7bd9b1cb406a',
-		  'X-RapidAPI-Host': 'spoonacular-recipe-food-nutrition-v1.p.rapidapi.com'
+		  'X-RapidAPI-Key': req.session.user.api_key,
+		  'X-RapidAPI-Host': req.session.user.api_host
 		}
 	  };
 
