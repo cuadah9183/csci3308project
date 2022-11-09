@@ -78,17 +78,16 @@ app.get('/login', async (req, res) =>{
 			console.log("req.query.password = " + req.query.password + ", row.password = " + row.password);
 			
 			if (req.query.password === row.password) {
-				// save api_key
-				// req.session.user = {
-				//  api_key: process.env.API_KEY,
-				//  api_host: process.env.api_host
-				// };
-				// req.session.save();
-				//console.log("passwords match, saving api_key " + process.env.API_KEY);
+				//save api_key
+				req.session.user = {
+				 api_key: process.env.API_KEY,
+				 api_host: process.env.API_HOST
+				};
+				req.session.save();
 				
 				//go to home page
-				res.redirect("/home", {
-					username
+				res.redirect("/home", 200, {
+					username: username
 				});
 			}
 			
@@ -173,21 +172,34 @@ app.post("/create", async (req, res) => {
   }
 });
 
-// // Authentication Middleware.
-// const auth = (req, res, next) => {
-// 	if (!req.session.user) {
-// 	  // Return to login page
-// 	  return res.redirect('/');
-// 	}
-// 	next();
-//   };
 
-// // Authentication Required
-// app.use(auth);
 
+// Authentication Middleware.
+const auth = (req, res, next) => {
+	if (!req.session.user) {
+	  // Return to login page
+	  console.log('Not authenticated. Returning to login');
+	  
+	  //authentication redirect works as intended, but the error message doesnt display.
+	  return res.redirect('/',401,{
+		message: 'Please log in first!',
+		error: true,
+	  });
+	}
+	next();
+  };
+
+// Authentication Required
+app.use(auth);
+
+
+//username is always undefined here
 app.get("/home", (req, res) => {
 	  var username = req.query.username;
 	  console.log("username = " + username);
+	  res.render("pages/home",{
+		username: username
+	  });
  });
 
 //3rd party calls to Spoontacular https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
