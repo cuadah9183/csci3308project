@@ -1,0 +1,61 @@
+<%- include ('../partials/header') %>
+<%- include ('../partials/menu') %>
+<div class="col"><%- include ('../partials/message') %></div>
+
+<main>
+  <div class="container">
+    <h1>Recipe Book</h1>
+    <form action="/discover" method="GET">
+        <input type="text" name="queryIn">
+        <input type="submit" value="Search Recipes">
+    </form>
+    <!-- FOR EACH loop to populate the page with results from spoontacular call-->
+    <div class="container" style="padding-bottom: 55px">
+        <div class="row">
+            <div class="col"><h5>Name</h5></div>
+            <div class="col"><h5>Image</h5></div>
+            <div class="col"><h5>Servings</h5></div>
+            <div class="col"><h5>Prep Time</h5></div>
+            <div class="col-sm"></div>
+            <div class="col-sm"></div>
+        </div>
+
+        <% if (results) {
+            var listElement = '';
+            var baseUri = results.data.baseUri;
+
+            results.data.results.forEach(function(recipe){
+                listElement += `
+                <div class="row" style="padding-top: 15px">
+                    <div class="col">
+                        <p>`+ recipe.title +`</p>
+                    </div>
+                    <div class="col">
+                        <img style='height:100px' src='`+ baseUri + recipe.image +`' alt='Looks bomb.. Try checking source'\>
+                    </div>
+                    <div class="col">
+                        <p>`+ recipe.servings +`</p>
+                    </div>
+                    <div class="col">
+                        <p>`+ recipe.readyInMinutes +` mins</p>
+                    </div>
+                    <div class="col-sm">
+                        <form action="">
+                            <input type="submit" value="Add to Library" />
+                        </form>
+                    </div>
+                    <div class="col-sm">
+                        <form action="`+ recipe.sourceUrl +`">
+                            <input type="submit" value=" Recipe Source" />
+                        </form>
+                    </div>
+                </div>
+                `;
+            });
+        } %>
+
+        <%- listElement %>
+    </div>
+</main>
+
+<%- include ('../partials/footer') %>
