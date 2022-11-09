@@ -17,7 +17,8 @@ CREATE TABLE recipe(
 CREATE TABLE log(
     recipeID INT NOT NULL,
     userID INT NOT NULL,
-    time TIMESTAMP NOT NULL,
+    date timestamp NOT NULL,
+    time TIME WITHOUT TIME ZONE NOT NULL,
     servings INT DEFAULT 1,
     PRIMARY KEY(recipeID, userID),
     FOREIGN KEY(recipeID)

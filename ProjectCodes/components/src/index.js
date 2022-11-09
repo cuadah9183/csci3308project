@@ -46,6 +46,8 @@ app.use(
   })
 );
 
+const user = {username: undefined};
+
 
 
 app.get('/', (req, res) => {
@@ -139,7 +141,7 @@ app.post("/create", async (req, res) => {
 	res.render("pages/create", {message: "Password must be 8 or more characters long."});
   }
   else if (!result) {
-	res.render("pages/create", {message: "Password must contain atleast one uppercase, one lowercase, one special character and no spaces"});
+	res.render("pages/create", {message: "Password must contain atleast one uppercase, one lowercase, one special character, one number, and no spaces"});
   }
   else if (result) {
 	  
@@ -171,8 +173,31 @@ app.post("/create", async (req, res) => {
 });
 
 app.get("/home", (req, res) => {
-	  var username = req.query.username;
-	  console.log("username = " + username);
+	  user.username = req.query.username;
+
+	  if (user.username == undefined){
+		user.username = "test";
+	  }
+
+	  req.session.user = user;
+      req.session.save();
+
+	  console.log("username = " + user.username);
+
+	  const userquery = "SELECT date(date), time, servings, name, calories, protein, fiber, sodium, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date = current_date ORDER BY time ASC;";
+	  
+	  db.any(userquery, [user.username])
+	  .then(daylog => {
+		console.log(daylog);
+		res.render("pages/home", {username: req.session.user.username, daylog: daylog,});
+
+	  })
+	  .catch((err) => {
+		console.log(err);
+		res.redirect("/login");
+	  });
+
+
  });
 
 

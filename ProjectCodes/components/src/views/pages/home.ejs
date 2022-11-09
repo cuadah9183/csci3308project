@@ -4,8 +4,40 @@
 
 <main>
   <div class="container">
-    <h1>Home Page</h1>
-	<h2><centre>Welcome User : <%= username %></centre></h2>
+	<h2>Welcome User : <%= username %></h2>
+  <h4>Date: <%= daylog[0].date %></h4>
+    <p></p>
+    <div class="row" style="column-gap:20px; row-gap:20px">
+    <% if (daylog){
+      var res = '';
+      daylog.forEach(function(item) {
+        res +=  '<div class="card" style="width:350px">' +
+          '<img class="card-img-top" src="" alt="Card image"> ' +
+          '<div class="card-body"> ' +
+            '<h4 class="card-title text-center">' + item.name + '</h4>' +
+            '<h6 class="card-subtitle mb-2 text-muted text-center">' + item.time + '</h6>' +
+            '<p class="card-text"><b>Nutrition Info:</b></p>' +
+            '<ul class="list-group list-group-flush">' +
+              '<li class="list-group-item">Calories: ' + item.calories + '</li>' +
+              '<li class="list-group-item">Protein: ' + item.protein + 'g</li>' +
+              '<li class="list-group-item">Sodium: ' + item.sodium + 'mg</li>' +
+              '<li class="list-group-item">Fiber: ' + item.fiber + 'g</li>' +
+            '</ul>' +
+            '<a href="#" class="btn btn-primary float-end">Edit</a>' +
+          '</div>' +
+        '</div>';
+      });
+      res += '<div class="card" style="width:350px">' +
+        '<img class="card-img-top" src="" alt="Card image"> ' +
+        '<div class="card-body"> ' +
+          '<a href="#" class="btn btn-primary float-end" style="margin-top: 265px">Add</a>' +
+        '</div>' +
+      '</div></div>' +
+      '<p></p>';%>
+    <%- res %>
+  <% } %>
+
+
 </main>
 
 <%- include ('../partials/footer') %>
