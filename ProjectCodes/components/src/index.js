@@ -46,9 +46,8 @@ app.use(
   })
 );
 
+
 const user = {username: undefined};
-
-
 
 app.get('/', (req, res) => {
   res.redirect("/login");
@@ -67,34 +66,30 @@ app.get('/login', async (req, res) =>{
 			  [req.query.username]
 			);
 			 if (!row || row.username != req.query.username) {
-				res.redirect("/register", {message: "incorrect user '" + row.username + "', please create an account first."});
+				res.redirect("/create", {message: "incorrect user '" + row.username + "', please create an account first."});
 			}
 			console.log("select query returned = " + row.username + ", " + row.password);
-			
-			// compare passwords, if same then save api_key, 
-			//const hash2 = await bcrypt.hash(req.query.password, 10);
-			//const match = await bcrypt.compare(req.query.password, row.password);
-			
 			console.log("req.query.password = " + req.query.password + ", row.password = " + row.password);
 			
 			if (req.query.password === row.password) {
-				// save api_key
-				//req.session.user = {
-				//  api_key: process.env.API_KEY,
-				//};
-				//req.session.save();
-				//console.log("passwords match, saving api_key " + process.env.API_KEY);
-				
+				// save username to user
+				user.username = row.username;
+				//save api_key and user
+				req.session.user = {
+				 api_key: process.env.API_KEY,
+				 api_host: process.env.API_HOST,
+				 user
+				};
+				req.session.save();
+				console.log("username = " + row.username);
 				//go to home page
-				res.redirect("/home", {
-					username
-				});
+				res.redirect("/home");
 			}
 			
 			// if usernames don't match then tell user to register first
 			else if (row.username != req.query.username) {
 				console.log("Username does not match, please register first");
-				res.redirect("/register", {message: "User does not exist in the system, please register first"});
+				res.redirect("/create", {username, password, message: "User does not exist in the system, please create account first"});
 			}
 			else if (password != row.password) {
 				console.log("Passwords don't match, probably entered incorrect password, try logging in again");
@@ -109,11 +104,11 @@ app.get('/login', async (req, res) =>{
 		catch(err) {
 			if (err.toString().startsWith("TypeError: Cannot read properties of undefined (reading 'username')")) {
 				//console.log("user does not exist in the system, go register first = " + err);
-				res.redirect("/register", {message: "user does not exist in the system, please register first"});
+				res.redirect("/create", {username, password, message: "user does not exist in the system, please create account first"});
 			}
 			else {
 				console.log("UNKNOWN error = " + err);
-				res.redirect("/register", {message: "UNKNOWN login error, try login again"});
+				res.redirect("/create", {message: "UNKNOWN login error, try login again"});
 			}
 		}
 	}
@@ -129,24 +124,34 @@ app.get('/create', (req, res) =>{
 });
 
 
-// POST Register submission
+// POST Create submission
 app.post("/create", async (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
-  let re = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})");
-  let result = re.test(password);
-  console.log("password result = " + result);
-  
+  var username = req.body.username;
+  var password = req.body.password;
+  if (username === "") {
+	console.log("username is blank");
+  }
+
   if (password.length < 8) {
-	res.render("pages/create", {message: "Password must be 8 or more characters long."});
+	res.render("pages/create", {username, password, message: "Password must be 8 or more characters long."});
   }
-  else if (!result) {
-	res.render("pages/create", {message: "Password must contain atleast one uppercase, one lowercase, one special character, one number, and no spaces"});
+  else if ((/[a-z]/).test(password) === false) {
+	res.render("pages/create", {username, password, message: "Password must contain atleast one lowercase character."});
   }
-  else if (result) {
-	  
-	  //const hash = await bcrypt.hash(req.body.password, 10);
-	  //console.log("password hash = " + hash);
+  else if ((/[A-Z]/).test(password) === false) {
+	res.render("pages/create", {username, password, message: "Password must contain atleast one uppercase character."});
+  }
+  else if ((/[0-9]/).test(password) === false) {
+	res.render("pages/create", {username, password, message: "Password must contain atleast one digit between 0 & 9."});
+  }
+  else if ((/[0-9]/).test(password) === false) {
+	res.render("pages/create", {username, password, message: "Password must contain atleast one digit between 0 & 9."});
+  }
+  else if ((/(?=.[-~!#*$@_%+=.,&(){}|;:<>?])[^'"\\]+$/i).test(password) === false) {
+	res.render("pages/create", {username, password, message: "Password must contain atleast one special character - ~ ! # * $ @ _ % + = . , & ( ) { } | ; : < > ?"});
+  }  
+  else {
+	  console.log("we have a valid password = " + password);
 	  
 		try {
 		  const aaa = await db.none(
@@ -154,7 +159,7 @@ app.post("/create", async (req, res) => {
 			  [req.body.username, password]
 			);
 			console.log("User '" + username + "' added to db");
-			res.render("pages/login", {message: "User '" + username + "' successfully added to NutriLog database"});
+			res.render("pages/login", {username, password, message: "User '" + username + "' successfully added to NutriLog database"});
 		}
 		catch (err) {
 			if (err.toString().startsWith("error: duplicate key value violates unique constraint")) {
@@ -163,26 +168,34 @@ app.post("/create", async (req, res) => {
 			}
 			return;
 		}
-	}	
-  else {
-	res.render("pages/login", {
-		username,
-		password,
-	});
   }
 });
 
+
+
+// Authentication Middleware.
+const auth = (req, res, next) => {
+	if (!req.session.user) {
+	  // Return to login page
+	  console.log('Not authenticated. Returning to login');
+	  
+	  //authentication redirect works as intended, but the error message doesnt display.
+	  return res.redirect('/',401,{
+		message: 'Please log in first!',
+		error: true,
+	  });
+	}
+	next();
+  };
+
+// Authentication Required
+app.use(auth);
+
+
+//username is always undefined here
 app.get("/home", (req, res) => {
-	  user.username = req.query.username;
 
-	  if (user.username == undefined){
-		user.username = "test";
-	  }
-
-	  req.session.user = user;
-      req.session.save();
-
-	  console.log("username = " + user.username);
+	  console.log("in home page, username = " + user.username);
 
 	  const userquery = "SELECT date(time) AS date, time::time, servings, name, calories, protein, fiber, sodium, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date(time) = current_date ORDER BY time ASC;";
 	  
@@ -199,6 +212,6 @@ app.get("/home", (req, res) => {
 
 
  });
-		
-app.listen(3000);
+
+ app.listen(3000);
 console.log('Server is listening on port 3000');
