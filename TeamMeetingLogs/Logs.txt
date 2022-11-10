@@ -11,3 +11,17 @@ Make sure all group members contribute equally.
 Epics are created using labels.Change web page development on the project board.
 Login/Logout are mandatory.  
 
+
+11-10-2022
+
+What we discussed:
+-Add acceptance criteria to all user stories.
+-By end of week three (next week) everything needs to be completed.
+-Release notes need to be created ASAP.
+-Everyone should review the rubric.
+
+Work Tracker (agreed-on roles and responsibilities):
+-Maxwell: Working on 3rd party API. Uploading recipes into database this week/next week.
+-Aditya: Working on log-in, log-out page. Profile page this week/next week.
+-Ash: Working on homepage. Will wrap up display details this week, finish Calendar next week.
+-Saphire: Working on Add Meal modal. Will complete basic add/edit functions this week, complete autocomplete/search function next week.
