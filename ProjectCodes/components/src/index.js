@@ -201,11 +201,11 @@ app.get("/home", (req, res) => {
 	  console.log("in home page, username = " + user.username);
 
 	  const userquery = "SELECT date(time) AS date, time::time, servings, name, calories, protein, fiber, sodium, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date(time) = current_date ORDER BY time ASC;";
-	  
+
 	  db.any(userquery, [user.username])
 	  .then(daylog => {
 		console.log(daylog);
-		res.render("pages/home", {username: req.session.user.username, daylog: daylog,});
+		res.render("pages/home", {username: req.session.user.user.username, daylog: daylog,});
 
 	  })
 	  .catch((err) => {
