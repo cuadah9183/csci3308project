@@ -184,7 +184,7 @@ app.get("/home", (req, res) => {
 
 	  console.log("username = " + user.username);
 
-	  const userquery = "SELECT date(date), time, servings, name, calories, protein, fiber, sodium, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date = current_date ORDER BY time ASC;";
+	  const userquery = "SELECT date(time) AS date, time::time, servings, name, calories, protein, fiber, sodium, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date(time) = current_date ORDER BY time ASC;";
 	  
 	  db.any(userquery, [user.username])
 	  .then(daylog => {
@@ -199,9 +199,6 @@ app.get("/home", (req, res) => {
 
 
  });
-
-
-	
 		
 app.listen(3000);
 console.log('Server is listening on port 3000');
