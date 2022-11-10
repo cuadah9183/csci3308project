@@ -6,6 +6,10 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const axios = require('axios');
 
+//globals for Spoontacular call limits. Only functional when index.js isnt going down and up repeatedly
+var numRequests = 0;
+var stampDate = Date.now();
+
 // database configuration
 const dbConfig = {
   host: 'db',
@@ -45,7 +49,6 @@ app.use(
     extended: true,
   })
 );
-
 
 const user = {username: undefined};
 
@@ -210,8 +213,77 @@ app.get("/home", (req, res) => {
 		res.redirect("/login");
 	  });
 
-
  });
 
- app.listen(3000);
+//3rd party calls to Spoontacular https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
+//TODO: Add recipe to library with modal. Need modal and login to work
+ //populate modal of nutritional information with another call?
+//500 requests a day for free. hardcord limit
+
+app.get("/discover",(req, res) => {
+	console.log('calling get /discover...');
+	
+	if(Date.now() - stampDate >= 1000*60*60*24){
+		//24 hours or greater passed stampDate. Set stampDate to now to reset 24hr clock, reset call count
+		numRequests = 0;
+		stampDate = Date.now();
+	} else {
+		//iterate numRequests
+		numRequests += 1;
+		console.log("Request good. Number: " + numRequests);
+	}
+
+	//Some random values for populating discover with user input query
+	const randomFoods = ['American','Asian','Indian','Salad','Mexican','Eastern European','breakfast','lunch','dinner','healthy'];
+
+	//check for user input for the query. If none, use value from randomFoods
+	var qIn = '';
+	if(!req.query.queryIn){
+		qIn = randomFoods[Math.floor(Math.random() * 10)];
+	} else {
+		qIn = req.query.queryIn;
+	}
+
+	//input for call to 3rd party
+	const options = {
+		method: 'GET',
+		url: 'https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/search',
+		params: {
+		  query: qIn
+		},
+		headers: {
+		  'X-RapidAPI-Key': req.session.user.api_key,
+		  'X-RapidAPI-Host': req.session.user.api_host
+		}
+	  };
+
+	if(numRequests >= 500){
+		//dont call the request because it will cost me money (0.003$)
+		res.render('pages/discover',{
+			results:[],
+			error: true,
+			message: 'To many requests. Wait until tomorrow'
+		})
+	} else {
+	axios.request(options).then(function (results) {
+		// console.log(typeof results.data.results);
+		// console.log(results.data)
+		res.render('pages/discover',{
+			results: results
+		})
+	})
+	.catch(function (error) {
+		console.error(error);
+		res.render('pages/discover',{
+			results: [],
+			error: true,
+			message: 'Spoontacular API call failed'
+		});
+	})}
+});
+
+
+
+
+app.listen(3000);
 console.log('Server is listening on port 3000');

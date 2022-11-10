@@ -35,3 +35,6 @@ CREATE TABLE library(
     FOREIGN KEY(userID)
         REFERENCES users(userID)
 );
+
+INSERT INTO users (username,password)
+    VALUES ('t','t');
