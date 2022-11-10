@@ -50,6 +50,8 @@ app.use(
   })
 );
 
+const user = {username: undefined};
+
 app.get('/', (req, res) => {
   res.redirect("/login");
 });
@@ -73,17 +75,18 @@ app.get('/login', async (req, res) =>{
 			console.log("req.query.password = " + req.query.password + ", row.password = " + row.password);
 			
 			if (req.query.password === row.password) {
-				//save api_key
+				// save username to user
+				user.username = row.username;
+				//save api_key and user
 				req.session.user = {
 				 api_key: process.env.API_KEY,
-				 api_host: process.env.API_HOST
+				 api_host: process.env.API_HOST,
+				 user
 				};
 				req.session.save();
 				console.log("username = " + row.username);
 				//go to home page
-				res.redirect("/home", 200, {
-					username : row.username
-				});
+				res.redirect("/home");
 			}
 			
 			// if usernames don't match then tell user to register first
@@ -194,11 +197,22 @@ app.use(auth);
 
 //username is always undefined here
 app.get("/home", (req, res) => {
-	  var username = req.body.username;
-	  console.log("in home page, username = " + username);
-	  res.render("pages/home",{
-		username: username
+
+	  console.log("in home page, username = " + user.username);
+
+	  const userquery = "SELECT date(time) AS date, time::time, servings, name, calories, protein, fiber, sodium, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date(time) = current_date ORDER BY time ASC;";
+	  
+	  db.any(userquery, [user.username])
+	  .then(daylog => {
+		console.log(daylog);
+		res.render("pages/home", {username: req.session.user.username, daylog: daylog,});
+
+	  })
+	  .catch((err) => {
+		console.log(err);
+		res.redirect("/login");
 	  });
+
  });
 
 //3rd party calls to Spoontacular https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
