@@ -1,0 +1,24 @@
+Release Notes:
+
+11/10/2022
+ -Discover Page development
+  -Recipes from spoontacular API populate on the page
+  -The user can input a string used in the API call to generate specific results
+  -The user can follow a recipe back to its source
+ 
+ -Accout Utilities
+  -Added user authentication logic, discover cannot be reached without signing in
+  -User is able to create an account / login to the application
+ 
+ -Database
+  -create.sql updated to initialize the database with correct datatypes and syntax
+  -INSERT statement added to create.sql to add a user for testing purposes
+ 
+ -Directory
+  -Established directory structure 
+  -docker-compose.yaml written to intitialize containers 
+  -.gitignore written
+  -package.json written
+  
+ -Home Page development
+ 
