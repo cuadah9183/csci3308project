@@ -21,4 +21,6 @@ Release Notes:
   -package.json written
   
  -Home Page development
- 
+  - Displays current date and time under the username.
+  - Reads current user's meal log for the current day from the database and displays in the form of cards.
+  - Card for 'add meal' appears after the existing log has been displayed.
