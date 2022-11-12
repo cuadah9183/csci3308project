@@ -30,13 +30,14 @@
       res += '<div class="card" style="width:350px">' +
         '<img class="card-img-top" src="" alt="Card image"> ' +
         '<div class="card-body"> ' +
-          '<a href="#" class="btn btn-primary float-end" style="margin-top: 265px">Add</a>' +
+          '<button id="add" type="button" class="btn btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addMealModal" style="margin-top: 265px">Add</button>' +
         '</div>' +
       '</div></div>' +
       '<p></p>';%>
     <%- res %>
   <% } %>
 
+  <%- include ('../partials/addMeal') %>
 
 </main>
 
