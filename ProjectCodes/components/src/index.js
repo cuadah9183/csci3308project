@@ -215,6 +215,37 @@ app.get("/home", (req, res) => {
 
  });
 
+ app.post("/addLog", (req, res) =>{
+	const mealName = req.body.mealName;
+	const calories = req.body.calories;
+	const protein = req.body.protein;
+	const fiber = req.body.fiber;
+	const sodium = req.body.sodium;
+
+	console.log("adding meal to db");
+
+	const query = "INSERT INTO recipe (name, calories, protein, fiber, sodium) values ($1, $2, $3, $4, $5);";
+	const query2 = `INSERT INTO log (recipeID, userID, time) values ((select recipeID from recipe order by recipeID desc limit 1), (select userID from users where username = '${user.username}'), current_timestamp);`;
+
+	if (req.body.mealName !== null){
+		db.task('get-everything', task => {
+			return task.batch([
+				task.any(query, [mealName, calories, protein, fiber, sodium]),
+				task.any(query2),
+			]);
+		})
+		.then(() =>{
+			res.redirect("/home")
+		})
+		.catch((err) => {
+			console.log(err);
+			res.redirect("/home", {
+				message: 'Error adding meal'
+			});
+		})
+	}
+ });
+
 //3rd party calls to Spoontacular https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
 //TODO: Add recipe to library with modal. Need modal and login to work
  //populate modal of nutritional information with another call?
