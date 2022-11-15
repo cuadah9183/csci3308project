@@ -1,0 +1,54 @@
+<%- include ('../partials/header') %>
+<%- include ('../partials/menu') %>
+<div class="col"><%- include ('../partials/message') %></div>
+
+<main>
+  <div class="container">
+    <h1>Meal Library</h1>
+
+    <!-- FOR EACH loop to populate the page with results from spoontacular call-->
+    <div class="container" style="padding-bottom: 55px">
+        <div class="row">
+            <div class="col"><h5>Name</h5></div>
+            <div class="col"><h5>Calories(cal)</h5></div>
+            <div class="col"><h5>Protein(g)</h5></div>
+            <div class="col"><h5>Sodium(mg)</h5></div>
+            <div class="col"><h5>Fiber(g)</h5></div>
+            <div class="col-sm"></div>
+        </div>
+
+        <% if (results) {
+            var listElement = '';
+
+            results.forEach(function(recipe){
+                listElement += `
+                <div class="row" style="padding-top: 15px">
+                    <div class="col" style="text-align: left">
+                        <p>`+ recipe.name +`</p>
+                    </div>
+                    <div class="col" style="text-align: left">
+                        <p>`+ recipe.calories +`</p>
+                    </div>
+                    <div class="col" style="text-align: left">
+                        <p>`+ recipe.protein +`</p>
+                    </div>
+                    <div class="col" style="text-align: left">
+                        <p>`+ recipe.sodium +`</p>
+                    </div>
+                    <div class="col" style="text-align: left">
+                        <p>`+ recipe.fiber +`</p>
+                    </div>
+                    <div class="col">
+                        
+                    </div>
+                </div>
+                `;
+            });
+        } %>
+
+        <%- listElement %>
+
+    </div>
+</main>
+
+<%- include ('../partials/footer') %>

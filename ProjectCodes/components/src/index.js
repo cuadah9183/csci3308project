@@ -77,14 +77,20 @@ app.get('/login', async (req, res) =>{
 			if (req.query.password === row.password) {
 				// save username to user
 				user.username = row.username;
-				//save api_key and user
+				
+				//save api_key and userID
+				const IDresults = await db.query(
+					"select userID FROM users where username = $1",[row.username]
+				);
 				req.session.user = {
 				 api_key: process.env.API_KEY,
 				 api_host: process.env.API_HOST,
+				 ID: IDresults[0].userid,
 				 user
 				};
 				req.session.save();
-				console.log("username = " + row.username);
+				console.log("username = " + row.username + "| userID = " + req.session.user.ID);
+				
 				//go to home page
 				res.redirect("/home");
 			}
@@ -245,6 +251,24 @@ app.get("/home", (req, res) => {
 		})
 	}
  });
+
+
+ app.get("/library", (req, res) => {
+	const userquery = ' SELECT * FROM recipe R, library L, user U WHERE R.recipeID = L.recipeID and L.userID = $1'
+	db.any(userquery, [req.session.user.ID])
+	.then(results => {
+		//console.log('/library GET results:');
+		//console.log(results);
+		res.render("pages/library",{results: results});
+	})
+	.catch((err) => {
+	  console.log(err);
+	  res.render("pages/library",{
+		results : [],
+		message: 'Database call failed.',
+		error: true});
+	});
+});
 
 //3rd party calls to Spoontacular https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
 //TODO: Add recipe to library with modal. Need modal and login to work
