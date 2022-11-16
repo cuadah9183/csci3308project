@@ -254,11 +254,20 @@ app.get("/home", (req, res) => {
 
 
  app.get("/library", (req, res) => {
-	const userquery = ' SELECT * FROM recipe R, library L, user U WHERE R.recipeID = L.recipeID and L.userID = $1'
-	db.any(userquery, [req.session.user.ID])
+	var userquery = '';
+	
+	//if userSearch passed via req, take it into acccount when building query
+	if(!req.query.userSearch){
+		//undefined, pull every meal'
+		userquery = 'SELECT * FROM recipe R, library L WHERE R.recipeID = L.recipeID and L.userID = $1';
+	} else {
+		req.query.userSearch = '%' + req.query.userSearch + '%'
+		userquery = `SELECT * FROM recipe R, library L WHERE R.recipeID = L.recipeID and L.userID = $1 and R.name like $2`;
+	}
+	
+	//db call
+	db.any(userquery, [req.session.user.ID, req.query.userSearch])
 	.then(results => {
-		//console.log('/library GET results:');
-		//console.log(results);
 		res.render("pages/library",{results: results});
 	})
 	.catch((err) => {

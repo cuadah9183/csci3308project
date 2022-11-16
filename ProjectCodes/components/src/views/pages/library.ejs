@@ -4,7 +4,18 @@
 
 <main>
   <div class="container">
-    <h1>Meal Library</h1>
+    <div class="row">
+        <div class="col">
+        <h1>Meal Library</h1>
+        </div>
+        <div class="col" style="padding-top:13px">
+        <form action="/library" method="GET">
+            <input type="text" name="userSearch">
+            <input type="submit" value="Search Library">
+        </form>
+        </div>
+    </div>
+    <br>
 
     <!-- FOR EACH loop to populate the page with results from spoontacular call-->
     <div class="container" style="padding-bottom: 55px">
@@ -39,7 +50,7 @@
                         <p>`+ recipe.fiber +`</p>
                     </div>
                     <div class="col">
-                        
+
                     </div>
                 </div>
                 `;
