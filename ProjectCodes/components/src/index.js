@@ -86,6 +86,7 @@ app.get('/login', async (req, res) =>{
 				 api_key: process.env.API_KEY,
 				 api_host: process.env.API_HOST,
 				 ID: IDresults[0].userid,
+				 lastQuery: "",
 				 user
 				};
 				req.session.save();
@@ -258,15 +259,47 @@ app.get("/home", (req, res) => {
 	
 	//if userSearch passed via req, take it into acccount when building query
 	if(!req.query.userSearch){
-		//undefined, pull every meal'
-		userquery = 'SELECT * FROM recipe R, library L WHERE R.recipeID = L.recipeID and L.userID = $1';
+		//undefined, pull every meal
+		if(req.query.sort == ""){
+			//no sort request. Pull every recipe, unsorted
+			userquery = 'SELECT * FROM recipe R, library L WHERE R.recipeID = L.recipeID and L.userID = $1';
+			
+			//general query, reset for sorting library calls
+			req.session.user.lastQuery = "";
+		} else {
+			//sort request. Order by value passed via sort and include LIKE statement if lastQuery != ""
+			userquery = 'SELECT * FROM recipe R, library L WHERE R.recipeID = L.recipeID and L.userID = $1';
+
+			if(req.session.user.lastQuery != ""){
+				//if the last library call was a library search, include the like statement
+				userquery += ' and R.name like $2'
+			}
+
+			if(req.query.sort == "CAL"){
+				userquery += ' ORDER BY calories ASC;';
+			}
+			else if(req.query.sort == "PRO"){
+				userquery += ' ORDER BY protein DESC;';
+			}
+			else if(req.query.sort == "SOD"){
+				userquery += ' ORDER BY sodium ASC;';
+			}
+			else if(req.query.sort == "FIB"){
+				userquery += ' ORDER BY fiber DESC;';
+			} else {
+				userquery += ';';
+			}
+		}
+
 	} else {
 		req.query.userSearch = '%' + req.query.userSearch + '%'
 		userquery = `SELECT * FROM recipe R, library L WHERE R.recipeID = L.recipeID and L.userID = $1 and R.name like $2`;
+		req.session.user.lastQuery = req.query.userSearch;
 	}
+	console.log("lib call: .lastQuery: " + req.session.user.lastQuery);
 	
 	//db call
-	db.any(userquery, [req.session.user.ID, req.query.userSearch])
+	db.any(userquery, [req.session.user.ID, req.session.user.lastQuery])
 	.then(results => {
 		res.render("pages/library",{results: results});
 	})
