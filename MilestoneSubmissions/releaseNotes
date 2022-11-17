@@ -12,6 +12,10 @@ Release Notes:
  -Add Meal Modal
   -Autocomplete functionality added, allowing user to use meals save in their library when logging
   -Adds meal to the meal log, saving the date and recipe used
+  
+ -Calendar Page development
+  - Basic display features (columns for days of week; names of meals for a day are listed in that day's column; current week displays by default)
+  - Arrows set week back or forward by one
  
 
 11/10/2022
