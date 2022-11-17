@@ -397,6 +397,32 @@ app.get("/discover",(req, res) => {
 });
 
 
+app.get("/calendar", (req, res) =>{
+	console.log("loading calendar for " + user.username);
+	const week=req.query.week;
+	var logquery;
+
+	if (week == undefined){
+		logquery = "SELECT r.recipeID, name, calories, protein, fiber, sodium, imageurl, date_part('dow', time) AS day, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = date_part('week', current_timestamp);";
+	}
+	else{
+		logquery = "SELECT r.recipeID, name, calories, protein, fiber, sodium, imageurl, date_part('dow', time) AS day, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = $2;";
+	}
+
+	db.any(logquery, [user.username, week])
+	.then (weeklog => {
+		console.log(weeklog);
+		var cweek;
+		if (weeklog.length == 0){
+			cweek = req.query.week;
+		}
+		else{
+			cweek = weeklog[0].week;
+		}
+		
+		res.render("pages/calendar", {username: req.session.user.user.username, weeklog: weeklog, weeknum:cweek});
+	})
+});
 
 
 app.listen(3000);

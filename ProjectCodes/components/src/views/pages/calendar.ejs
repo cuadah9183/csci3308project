@@ -1,0 +1,48 @@
+<%- include ('../partials/header') %>
+<%- include ('../partials/menu') %>
+<div class="col"><%- include ('../partials/message') %></div>
+
+
+
+<main>
+
+  <div class="container">
+    <h2><%= username %>'s Calendar</h2>
+    <p></p>
+    <h4 class="text-center">
+        <form action="/calendar" method="GET">
+            <button name="week" value="<%= parseInt(weeknum)-1 %>" type="submit" class="btn" style="border-color: black;"><</button>  Week of <%= weeknum %> <button name="week" value="<%= parseInt(weeknum)+1 %>" type="submit" class="btn" style="border-color: black;">></button></h4>
+        </form>
+    <p></p>
+    <div class="container">
+        <div id="calendar" class="row" style="column-gap:20px;height: 450px; row-gap:20px">
+
+            <% 
+                const CALENDAR_DAYS = [
+                "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+                ];
+    
+                var res = '';
+                var i;
+                for (i = 0; i < 7; i++) {
+                  res +=  '<div class="card" style="width:150px; border-color:black"><div class="h6 text-center position-relative py-2">' + CALENDAR_DAYS[i] + '</div><div class="meal-container">';
+                  weeklog.forEach(function(item){
+                    if (item.day == i+1){
+                      res += '<div class="meal row border rounded m-1 py-1"><div class="col meal-title">' + item.name +'</div></div>';
+                    }
+
+              
+                  });
+                  res += '</div></div>';
+                }%>
+              <%- res %>
+        
+        </div>
+
+    </div>
+    <p></p>
+    
+  </div>
+</main>
+
+<%- include ('../partials/footer') %>
