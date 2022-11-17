@@ -23,10 +23,18 @@
                 ];
     
                 var res = '';
-                CALENDAR_DAYS.forEach(day => {
-                  res +=  '<div class="card" style="width:150px; border-color:black"><div class="h6 text-center position-relative py-2">' + day + '</div><div class="meal-container">';
+                var i;
+                for (i = 0; i < 7; i++) {
+                  res +=  '<div class="card" style="width:150px; border-color:black"><div class="h6 text-center position-relative py-2">' + CALENDAR_DAYS[i] + '</div><div class="meal-container">';
+                  weeklog.forEach(function(item){
+                    if (item.day == i+1){
+                      res += '<div class="meal row border rounded m-1 py-1"><div class="col meal-title">' + item.name +'</div></div>';
+                    }
+
+              
+                  });
                   res += '</div></div>';
-                });%>
+                }%>
               <%- res %>
         
         </div>
@@ -35,7 +43,6 @@
     <p></p>
     
   </div>
-
 </main>
 
 <%- include ('../partials/footer') %>

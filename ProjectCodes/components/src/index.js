@@ -291,10 +291,10 @@ app.get("/calendar", (req, res) =>{
 	var logquery;
 
 	if (week == undefined){
-		logquery = "SELECT r.recipeID, name, calories, protein, fiber, sodium, imageurl, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = date_part('week', current_timestamp);";
+		logquery = "SELECT r.recipeID, name, calories, protein, fiber, sodium, imageurl, date_part('dow', time) AS day, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = date_part('week', current_timestamp);";
 	}
 	else{
-		logquery = "SELECT r.recipeID, name, calories, protein, fiber, sodium, imageurl, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = $2;";
+		logquery = "SELECT r.recipeID, name, calories, protein, fiber, sodium, imageurl, date_part('dow', time) AS day, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = $2;";
 	}
 
 	db.any(logquery, [user.username, week])
