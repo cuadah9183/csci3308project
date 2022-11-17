@@ -50,6 +50,8 @@ app.use(
   })
 );
 
+app.use(express.static('/home/node/app'));
+
 const user = {username: undefined};
 
 app.get('/', (req, res) => {
@@ -203,55 +205,70 @@ app.use(auth);
 
 
 //username is always undefined here
-app.get("/home", (req, res) => {
+app.get("/home", async (req, res) => {
 
-	  console.log("in home page, username = " + user.username);
+	console.log("in home page, username = " + user.username);
 
-	  const userquery = "SELECT date(time) AS date, time::time, servings, name, calories, protein, fiber, sodium, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date(time) = current_date ORDER BY time ASC;";
-
-	  db.any(userquery, [user.username])
+	const libquery = "SELECT * FROM recipe r INNER JOIN library l ON r.recipeID = l.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1;";
+	const userquery = "SELECT date(time), time, servings, name, calories, protein, fiber, sodium, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date(time) = current_date ORDER BY time ASC;";
+	
+	const userdata=[];
+	await db.any (userquery, [user.username])
 	  .then(daylog => {
-		console.log(daylog);
-		res.render("pages/home", {username: req.session.user.user.username, daylog: daylog,});
-
-	  })
+		userdata.push(daylog);
+	})
 	  .catch((err) => {
 		console.log(err);
 		res.redirect("/login");
-	  });
+	});
+	console.log ('check');
+	await db.any (libquery, [user.username])
+	  .then(library =>{
+		userdata.push(library);
+	})
+	  .catch((err) => {
+		console.log(err);
+		res.redirect("/login");
+	});
+	console.log(userdata);
 
- });
+  res.render("pages/home", {username: req.session.user.user.username, daylog: userdata[0],recipes: JSON.stringify(userdata[1])});
 
- app.post("/addLog", (req, res) =>{
-	const mealName = req.body.mealName;
-	const calories = req.body.calories;
-	const protein = req.body.protein;
-	const fiber = req.body.fiber;
-	const sodium = req.body.sodium;
+});
 
-	console.log("adding meal to db");
 
-	const query = "INSERT INTO recipe (name, calories, protein, fiber, sodium) values ($1, $2, $3, $4, $5);";
-	const query2 = `INSERT INTO log (recipeID, userID, time) values ((select recipeID from recipe order by recipeID desc limit 1), (select userID from users where username = '${user.username}'), current_timestamp);`;
 
-	if (req.body.mealName !== null){
-		db.task('get-everything', task => {
-			return task.batch([
-				task.any(query, [mealName, calories, protein, fiber, sodium]),
-				task.any(query2),
-			]);
-		})
-		.then(() =>{
-			res.redirect("/home")
-		})
-		.catch((err) => {
-			console.log(err);
-			res.redirect("/home", {
-				message: 'Error adding meal'
-			});
-		})
-	}
- });
+// Add a meal to the meal log
+app.post("/addLog", (req, res) =>{
+// Get entries from fields
+  const mealName = req.body.mealName;
+  const calories = req.body.calories;
+  const protein = req.body.protein;
+  const fiber = req.body.fiber;
+  const sodium = req.body.sodium;
+
+  console.log("addLog called");
+// Insert into log
+  const query = "INSERT INTO recipe (name, calories, protein, fiber, sodium) values ($1, $2, $3, $4, $5);";
+  const query2 = `INSERT INTO log (recipeID, userID, time) values ((select recipeID from recipe order by recipeID desc limit 1), (select userID from users where username = '${user.username}'), current_timestamp);`;
+
+  if (req.body.mealName !== null){
+	  db.task('get-everything', task => {
+		  return task.batch([
+			  task.any(query, [mealName, calories, protein, fiber, sodium]),
+			  task.any(query2),
+		  ]);
+	  })
+	  .then(() =>{
+		  res.redirect("/home")
+	  })
+	  .catch((err) => {
+		  console.log(err);
+		  res.redirect("/login");
+	  })
+  }
+});
+
 
 
  app.get("/library", (req, res) => {

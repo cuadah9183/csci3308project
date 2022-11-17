@@ -3,13 +3,14 @@
 <div class="col"><%- include ('../partials/message') %></div>
 
 <main>
+  
   <div class="container">
 	<h2>Welcome User : <%= username %></h2>
   <!-- removed .date from daylog[0].date so home page loads after login -->
   <h4>Date: <%= daylog[0] %></h4>
     <p></p>
     <div class="row" style="column-gap:20px; row-gap:20px">
-    <% if (daylog){
+    <%if (daylog){
       var res = '';
       daylog.forEach(function(item) {
         res +=  '<div class="card" style="width:350px">' +
@@ -24,7 +25,7 @@
               '<li class="list-group-item">Sodium: ' + item.sodium + 'mg</li>' +
               '<li class="list-group-item">Fiber: ' + item.fiber + 'g</li>' +
             '</ul>' +
-            '<a href="#" class="btn btn-primary float-end">Edit</a>' +
+            '<button id="edit" type="button" class="btn btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addMealModal">Edit</button>' +
           '</div>' +
         '</div>';
       });
@@ -38,7 +39,13 @@
     <%- res %>
   <% } %>
 
-  <%- include ('../partials/addMeal') %>
+ <%- include ('../partials/addMeal') %>
+  <script src="/resources/js/script.js"></script>
+  <script>
+     var rec= <%- recipes %>;
+     recipeAutocomplete(document.getElementById("myInput"),rec);
+  </script> 
+
 
 </main>
 
