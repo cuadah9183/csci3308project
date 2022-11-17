@@ -79,14 +79,21 @@ app.get('/login', async (req, res) =>{
 			if (req.query.password === row.password) {
 				// save username to user
 				user.username = row.username;
-				//save api_key and user
+				
+				//save api_key and userID
+				const IDresults = await db.query(
+					"select userID FROM users where username = $1",[row.username]
+				);
 				req.session.user = {
 				 api_key: process.env.API_KEY,
 				 api_host: process.env.API_HOST,
+				 ID: IDresults[0].userid,
+				 lastQuery: "",
 				 user
 				};
 				req.session.save();
-				console.log("username = " + row.username);
+				console.log("username = " + row.username + "| userID = " + req.session.user.ID);
+				
 				//go to home page
 				res.redirect("/home");
 			}
@@ -198,24 +205,129 @@ app.use(auth);
 
 
 //username is always undefined here
-app.get("/home", (req, res) => {
+app.get("/home", async (req, res) => {
 
-	  console.log("in home page, username = " + user.username);
+	console.log("in home page, username = " + user.username);
 
-	  const userquery = "SELECT date(time) AS date, time::time, servings, name, calories, protein, fiber, sodium, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date(time) = current_date ORDER BY time ASC;";
-
-	  db.any(userquery, [user.username])
+	const libquery = "SELECT * FROM recipe r INNER JOIN library l ON r.recipeID = l.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1;";
+	const userquery = "SELECT date(time), time, servings, name, calories, protein, fiber, sodium, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date(time) = current_date ORDER BY time ASC;";
+	
+	const userdata=[];
+	await db.any (userquery, [user.username])
 	  .then(daylog => {
-		console.log(daylog);
-		res.render("pages/home", {username: req.session.user.user.username, daylog: daylog,});
-
-	  })
+		userdata.push(daylog);
+	})
 	  .catch((err) => {
 		console.log(err);
 		res.redirect("/login");
-	  });
+	});
+	console.log ('check');
+	await db.any (libquery, [user.username])
+	  .then(library =>{
+		userdata.push(library);
+	})
+	  .catch((err) => {
+		console.log(err);
+		res.redirect("/login");
+	});
+	console.log(userdata);
 
- });
+  res.render("pages/home", {username: req.session.user.user.username, daylog: userdata[0],recipes: JSON.stringify(userdata[1])});
+
+});
+
+
+
+// Add a meal to the meal log
+app.post("/addLog", (req, res) =>{
+// Get entries from fields
+  const mealName = req.body.mealName;
+  const calories = req.body.calories;
+  const protein = req.body.protein;
+  const fiber = req.body.fiber;
+  const sodium = req.body.sodium;
+
+  console.log("addLog called");
+// Insert into log
+  const query = "INSERT INTO recipe (name, calories, protein, fiber, sodium) values ($1, $2, $3, $4, $5);";
+  const query2 = `INSERT INTO log (recipeID, userID, time) values ((select recipeID from recipe order by recipeID desc limit 1), (select userID from users where username = '${user.username}'), current_timestamp);`;
+
+  if (req.body.mealName !== null){
+	  db.task('get-everything', task => {
+		  return task.batch([
+			  task.any(query, [mealName, calories, protein, fiber, sodium]),
+			  task.any(query2),
+		  ]);
+	  })
+	  .then(() =>{
+		  res.redirect("/home")
+	  })
+	  .catch((err) => {
+		  console.log(err);
+		  res.redirect("/login");
+	  })
+  }
+});
+
+
+
+ app.get("/library", (req, res) => {
+	var userquery = '';
+	
+	//if userSearch passed via req, take it into acccount when building query
+	if(!req.query.userSearch){
+		//undefined, pull every meal
+		if(req.query.sort == ""){
+			//no sort request. Pull every recipe, unsorted
+			userquery = 'SELECT * FROM recipe R, library L WHERE R.recipeID = L.recipeID and L.userID = $1';
+			
+			//general query, reset for sorting library calls
+			req.session.user.lastQuery = "";
+		} else {
+			//sort request. Order by value passed via sort and include LIKE statement if lastQuery != ""
+			userquery = 'SELECT * FROM recipe R, library L WHERE R.recipeID = L.recipeID and L.userID = $1';
+
+			if(req.session.user.lastQuery != ""){
+				//if the last library call was a library search, include the like statement
+				userquery += ' and R.name like $2'
+			}
+
+			if(req.query.sort == "CAL"){
+				userquery += ' ORDER BY calories ASC;';
+			}
+			else if(req.query.sort == "PRO"){
+				userquery += ' ORDER BY protein DESC;';
+			}
+			else if(req.query.sort == "SOD"){
+				userquery += ' ORDER BY sodium ASC;';
+			}
+			else if(req.query.sort == "FIB"){
+				userquery += ' ORDER BY fiber DESC;';
+			} else {
+				userquery += ';';
+			}
+		}
+
+	} else {
+		req.query.userSearch = '%' + req.query.userSearch + '%'
+		userquery = `SELECT * FROM recipe R, library L WHERE R.recipeID = L.recipeID and L.userID = $1 and R.name like $2`;
+		req.session.user.lastQuery = req.query.userSearch;
+	}
+	console.log("lib call: .lastQuery: " + req.session.user.lastQuery);
+	
+	//db call
+	db.any(userquery, [req.session.user.ID, req.session.user.lastQuery])
+	.then(results => {
+		res.render("pages/library",{results: results});
+	})
+	.catch((err) => {
+	  console.log(err);
+	  res.render("pages/library",{
+		results : [],
+		message: 'Database call failed.',
+		error: true});
+	});
+});
 
 //3rd party calls to Spoontacular https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
 //TODO: Add recipe to library with modal. Need modal and login to work

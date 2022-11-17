@@ -1,0 +1,65 @@
+<%- include ('../partials/header') %>
+<%- include ('../partials/menu') %>
+<div class="col"><%- include ('../partials/message') %></div>
+
+<main>
+  <div class="container">
+    <div class="row">
+        <div class="col">
+        <h1>Meal Library</h1>
+        </div>
+        <div class="col" style="padding-top:13px">
+        <form action="/library" method="GET">
+            <input type="text" name="userSearch">
+            <input type="submit" value="Search Library">
+        </form>
+        </div>
+    </div>
+    <br>
+
+    <!-- FOR EACH loop to populate the page with results from spoontacular call-->
+    <div class="container" style="padding-bottom: 55px">
+        <div class="row">
+            <div class="col"><h5>Name</h5></div>
+            <div class="col"><h5>Calories(cal)<a href="/library?sort=CAL" method="GET"><img  style="height:25px"src="https://charbase.com/images/glyph/9662"></a></h5></div>
+            <div class="col"><h5>Protein(g)<a href="/library?sort=PRO" method="GET"><img  style="height:25px"src="https://charbase.com/images/glyph/9662"></a></h5></div>
+            <div class="col"><h5>Sodium(mg)<a href="/library?sort=SOD" method="GET"><img  style="height:25px"src="https://charbase.com/images/glyph/9662"></a></h5></div>
+            <div class="col"><h5>Fiber(g)<a href="/library?sort=FIB" method="GET"><img  style="height:25px"src="https://charbase.com/images/glyph/9662"></a></h5></div>
+            <div class="col-sm"></div>
+        </div>
+
+        <% if (results) {
+            var listElement = '';
+
+            results.forEach(function(recipe){
+                listElement += `
+                <div class="row" style="padding-top: 15px">
+                    <div class="col" style="text-align: left">
+                        <p>`+ recipe.name +`</p>
+                    </div>
+                    <div class="col" style="text-align: left">
+                        <p>`+ recipe.calories +`</p>
+                    </div>
+                    <div class="col" style="text-align: left">
+                        <p>`+ recipe.protein +`</p>
+                    </div>
+                    <div class="col" style="text-align: left">
+                        <p>`+ recipe.sodium +`</p>
+                    </div>
+                    <div class="col" style="text-align: left">
+                        <p>`+ recipe.fiber +`</p>
+                    </div>
+                    <div class="col">
+
+                    </div>
+                </div>
+                `;
+            });
+        } %>
+
+        <%- listElement %>
+
+    </div>
+</main>
+
+<%- include ('../partials/footer') %>

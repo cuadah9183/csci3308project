@@ -1,5 +1,19 @@
 Release Notes:
 
+11/16/2022
+ -Library Page development
+  -Library page lists the recipes associated with the user account
+  -Recipes are sortable by nutrient information via the upside down triangle by each nutrient name
+  -User can search for recipes via the text box. User can also sort the recipes returned after a search
+ 
+ -UI
+  -both header and menu have been updated
+ 
+ -Add Meal Modal
+  -Autocomplete functionality added, allowing user to use meals save in their library when logging
+  -Adds meal to the meal log, saving the date and recipe used
+ 
+
 11/10/2022
  -Discover Page development
   -Recipes from spoontacular API populate on the page
@@ -24,3 +38,6 @@ Release Notes:
   - Displays current date and time under the username.
   - Reads current user's meal log for the current day from the database and displays in the form of cards.
   - Card for 'add meal' appears after the existing log has been displayed.
+
+-Add Meal Modal
+ - On homepage, user can click 'add' to see the Add Meal modal and add a meal to the current day's log from manual entry of information.
