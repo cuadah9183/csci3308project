@@ -77,14 +77,21 @@ app.get('/login', async (req, res) =>{
 			if (req.query.password === row.password) {
 				// save username to user
 				user.username = row.username;
-				//save api_key and user
+				
+				//save api_key and userID
+				const IDresults = await db.query(
+					"select userID FROM users where username = $1",[row.username]
+				);
 				req.session.user = {
 				 api_key: process.env.API_KEY,
 				 api_host: process.env.API_HOST,
+				 ID: IDresults[0].userid,
+				 lastQuery: "",
 				 user
 				};
 				req.session.save();
-				console.log("username = " + row.username);
+				console.log("username = " + row.username + "| userID = " + req.session.user.ID);
+				
 				//go to home page
 				res.redirect("/home");
 			}
@@ -245,6 +252,65 @@ app.get("/home", (req, res) => {
 		})
 	}
  });
+
+
+ app.get("/library", (req, res) => {
+	var userquery = '';
+	
+	//if userSearch passed via req, take it into acccount when building query
+	if(!req.query.userSearch){
+		//undefined, pull every meal
+		if(req.query.sort == ""){
+			//no sort request. Pull every recipe, unsorted
+			userquery = 'SELECT * FROM recipe R, library L WHERE R.recipeID = L.recipeID and L.userID = $1';
+			
+			//general query, reset for sorting library calls
+			req.session.user.lastQuery = "";
+		} else {
+			//sort request. Order by value passed via sort and include LIKE statement if lastQuery != ""
+			userquery = 'SELECT * FROM recipe R, library L WHERE R.recipeID = L.recipeID and L.userID = $1';
+
+			if(req.session.user.lastQuery != ""){
+				//if the last library call was a library search, include the like statement
+				userquery += ' and R.name like $2'
+			}
+
+			if(req.query.sort == "CAL"){
+				userquery += ' ORDER BY calories ASC;';
+			}
+			else if(req.query.sort == "PRO"){
+				userquery += ' ORDER BY protein DESC;';
+			}
+			else if(req.query.sort == "SOD"){
+				userquery += ' ORDER BY sodium ASC;';
+			}
+			else if(req.query.sort == "FIB"){
+				userquery += ' ORDER BY fiber DESC;';
+			} else {
+				userquery += ';';
+			}
+		}
+
+	} else {
+		req.query.userSearch = '%' + req.query.userSearch + '%'
+		userquery = `SELECT * FROM recipe R, library L WHERE R.recipeID = L.recipeID and L.userID = $1 and R.name like $2`;
+		req.session.user.lastQuery = req.query.userSearch;
+	}
+	console.log("lib call: .lastQuery: " + req.session.user.lastQuery);
+	
+	//db call
+	db.any(userquery, [req.session.user.ID, req.session.user.lastQuery])
+	.then(results => {
+		res.render("pages/library",{results: results});
+	})
+	.catch((err) => {
+	  console.log(err);
+	  res.render("pages/library",{
+		results : [],
+		message: 'Database call failed.',
+		error: true});
+	});
+});
 
 //3rd party calls to Spoontacular https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
 //TODO: Add recipe to library with modal. Need modal and login to work
