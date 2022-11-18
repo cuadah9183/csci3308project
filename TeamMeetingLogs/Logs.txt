@@ -25,3 +25,15 @@ Work Tracker (agreed-on roles and responsibilities):
 -Aditya: Working on log-in, log-out page. Profile page this week/next week.
 -Ash: Working on homepage. Will wrap up display details this week, finish Calendar next week.
 -Saphire: Working on Add Meal modal. Will complete basic add/edit functions this week, complete autocomplete/search function next week.
+
+11-18-2022
+
+What we discussed:
+- Team should delete completed branches.
+- Release notes need to be done using the Release notes feature on git. Correct this (refer to Project guide).
+- README needs to be regularly updated.
+- Project board is fine, but move remaining items to 'done' if finished.
+- Fix all broken elements.
+- Go through project guide step by step and ensure we are up to date.
+- Presentation slot needs to be booked.
+- No meeting over break; team should wrap up development and start working on presentation.
