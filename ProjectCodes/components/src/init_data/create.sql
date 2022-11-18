@@ -15,11 +15,11 @@ CREATE TABLE recipe(
 );
 
 CREATE TABLE log(
+    mealID SERIAL PRIMARY KEY,
     recipeID INT NOT NULL,
     userID INT NOT NULL,
     time TIMESTAMP NOT NULL,
     servings INT DEFAULT 1,
-    PRIMARY KEY(recipeID, userID),
     FOREIGN KEY(recipeID)
         REFERENCES recipe(recipeID),
     FOREIGN KEY(userID)
