@@ -209,6 +209,7 @@ app.get("/home", async (req, res) => {
 
 	console.log("in home page, username = " + user.username);
 
+	const datequery = "SELECT CURRENT_DATE;"
 	const libquery = "SELECT * FROM recipe r INNER JOIN library l ON r.recipeID = l.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1;";
 	const userquery = "SELECT date(time), time, servings, name, calories, protein, fiber, sodium, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date(time) = current_date ORDER BY time ASC;";
 	
@@ -226,13 +227,17 @@ app.get("/home", async (req, res) => {
 	  .then(library =>{
 		userdata.push(library);
 	})
+	await db.any (datequery)
+	.then(currdate =>{
+	  userdata.push(currdate);
+    })
 	  .catch((err) => {
 		console.log(err);
 		res.redirect("/login");
 	});
 	console.log(userdata);
 
-  res.render("pages/home", {username: req.session.user.user.username, daylog: userdata[0],recipes: JSON.stringify(userdata[1])});
+  res.render("pages/home", {username: req.session.user.user.username, daylog: userdata[0],recipes: JSON.stringify(userdata[1]), currdate: userdata[2],});
 
 });
 
