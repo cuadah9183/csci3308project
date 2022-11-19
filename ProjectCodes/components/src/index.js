@@ -252,11 +252,10 @@ app.post("/addLog", (req, res) => {
 	const fiber = req.body.fiber;
 	const sodium = req.body.sodium;
 
-	const recipeID = req.body.saveMeal;
+	const recID = req.body.saveMeal;
 	const addRecipe = req.body.saveRecipe;
-	//console.log(req.body);
-	console.log(recipeID, addRecipe);
 
+	console.log(recID, addRecipe);
 
 	console.log("addLog called");
 	// If the recipeID does not exist, insert into recipe table
@@ -264,47 +263,39 @@ app.post("/addLog", (req, res) => {
 	// If user chose to save to library, do so
 	const queryAddToLib = `INSERT INTO library (recipeID, userID) VALUES ((SELECT recipeID FROM recipe ORDER BY recipeID DESC LIMIT 1), (SELECT userID FROM users where username = '${user.username}'));`;
 	// Add meal to log
-	const queryInsertLog = `INSERT INTO log (recipeID, userID, time) VALUES ((SELECT recipeID from recipe order by recipeID desc limit 1), (select userID from users where username = '${user.username}'), current_timestamp);`;
-
+	const queryInsertLogNew = `INSERT INTO log (recipeID, userID, time) VALUES ((SELECT recipeID from recipe order by recipeID desc limit 1), (select userID from users where username = '${user.username}'), current_timestamp);`;
+	const queryInsertLogOld = `INSERT INTO log (recipeID, userID, time) VALUES ($1, (select userID from users where username = '${user.username}'), current_timestamp);`;
 
 	if (req.body.mealName !== null) {
 		db.task('get-everything', task => {
-			// if the recipe does not exist already.
-			if (recipeID == "None") {
+			// If the recipe does not exist already (it does not exist in the library).
+			if (recID == "None") {
 				// If recipe does not exist and user chose to save to library,
 				// create recipe, save to library, add to log.
 				if (addRecipe == "on") {
 					return task.batch([
 						task.any(queryAddRecipe, [mealName, calories, protein, fiber, sodium]),
 						task.any(queryAddToLib),
-						task.any(queryInsertLog)
+						task.any(queryInsertLogNew)
 					]);
-				} else 
+				} else
 				// If recipe does not exist, but user does not wish to save to library,
 				// create recipe and add to log.
 				{
 					return task.batch([
 						task.any(queryAddRecipe, [mealName, calories, protein, fiber, sodium]),
-						task.any(queryInsertLog)
+						task.any(queryInsertLogNew)
 					]);
 				}
 			}
 			else {
-				// If recipe does exist nad user wants it saved to library,
-				// save to library and add to log.
-				if (addRecipe == "on") {
-					return task.batch([
-						task.any(queryAddToLib),
-						task.any(queryInsertLog)
-					]);
-				}
-				// If recipe does exist and is not to be saved to library,
-				// just add to log. 
-				else {
-					return task.batch([
-						task.any(queryInsertLog)
-					]);
-				}
+
+				// If recipe does exist (is in library) and is not to be saved to library,
+				// just add to log.
+				return task.batch([
+					task.any(queryInsertLogOld, [recID])
+				]);
+
 			}
 
 		})

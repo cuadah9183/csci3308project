@@ -56,6 +56,7 @@
                       document.querySelector(`#protein`).value = entries[j].protein;
                       document.querySelector(`#fiber`).value = entries[j].fiber;
                       document.querySelector(`#sodium`).value = entries[j].sodium;
+                      document.querySelector(`#saveMeal`).value = entries[j].recipeid;
                     }
                   }
   
