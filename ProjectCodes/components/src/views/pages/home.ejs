@@ -8,36 +8,38 @@
 	<h2>Welcome User : <%= username %></h2>
   <!-- removed .date from daylog[0].date so home page loads after login -->
   <h4>Date: <%= currdate[0].current_date %></h4>
-    <p></p>
-    <div class="row" style="column-gap:20px; row-gap:20px">
-    <%if (daylog){
-      var res = '';
-      daylog.forEach(function(item) {
-        res +=  '<div class="card" style="width:350px">' +
-          '<img class="card-img-top" src="" alt="Card image"> ' +
-          '<div class="card-body"> ' +
-            '<h4 class="card-title text-center">' + item.name + '</h4>' +
-            '<h6 class="card-subtitle mb-2 text-muted text-center">' + item.time + '</h6>' +
-            '<p class="card-text"><b>Nutrition Info:</b></p>' +
-            '<ul class="list-group list-group-flush">' +
-              '<li class="list-group-item">Calories: ' + item.calories + '</li>' +
-              '<li class="list-group-item">Protein: ' + item.protein + 'g</li>' +
-              '<li class="list-group-item">Sodium: ' + item.sodium + 'mg</li>' +
-              '<li class="list-group-item">Fiber: ' + item.fiber + 'g</li>' +
-            '</ul>' +
-            '<button id="edit" type="button" class="btn btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addMealModal">Edit</button>' +
-          '</div>' +
-        '</div>';
-      });
-      res += '<div class="card" style="width:350px">' +
+  <p></p>
+  <div class="row" style="column-gap:20px; row-gap:20px">
+  <%if (daylog){
+    var res = '';
+    daylog.forEach(function(item) {
+      var mealArr="{name:'"+item.name+"',calories:'"+item.calories+"',protein:'"+item.protein+"',sodium:'"+item.sodium+"',fiber:'"+item.fiber+"'}";
+      res +=  '<div class="card" style="width:350px">' +
         '<img class="card-img-top" src="" alt="Card image"> ' +
         '<div class="card-body"> ' +
-          '<button id="add" type="button" class="btn btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addMealModal" style="margin-top: 265px">Add</button>' +
+          '<h4 class="card-title text-center">' + item.name + '</h4>' +
+          '<h6 class="card-subtitle mb-2 text-muted text-center">' + item.time + '</h6>' +
+          '<p class="card-text"><b>Nutrition Info:</b></p>' +
+          '<ul class="list-group list-group-flush">' +
+            '<li class="list-group-item">Calories: ' + item.calories + '</li>' +
+            '<li class="list-group-item">Protein: ' + item.protein + 'g</li>' +
+            '<li class="list-group-item">Sodium: ' + item.sodium + 'mg</li>' +
+            '<li class="list-group-item">Fiber: ' + item.fiber + 'g</li>' +
+          '</ul>' +
+          '<button id="edit" type="button" class="btn btn-primary float-end" onclick="addMealModal(' +mealArr+')">Edit</button>' +
         '</div>' +
-      '</div></div>' +
-      '<p></p>';%>
-    <%- res %>
-  <% } %>
+      '</div>';
+      
+    });
+    res += '<div class="card" style="width:350px">' +
+      '<img class="card-img-top" src="" alt="Card image"> ' +
+      '<div class="card-body"> ' +
+        '<button id="add" type="button" class="btn btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addMealModal" style="margin-top: 265px">Add</button>' +
+      '</div>' +
+    '</div></div>' +
+    '<p></p>';%>
+  <%- res %>
+<% } %>
 
  <%- include ('../partials/addMeal') %>
   <script src="/resources/js/script.js"></script>
