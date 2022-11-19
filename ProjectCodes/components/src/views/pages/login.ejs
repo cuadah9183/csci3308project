@@ -3,10 +3,9 @@
 <div class="col"><%- include ('../partials/message') %></div>
 <main>
   <div class="container" style="align:auto;margin-left:10%">
-
+	<h2>Login to NutriLog</h2>
 	<form action="/login" method="get">
 		<table>
-		<tr><td col="2"><h2>Login to NutriLog</h2></td></tr>
 		<tr>
 		  <td style="text-align:left;width:100px">
 		  <label for="username">Username: </label>
@@ -23,13 +22,13 @@
 		  <input type="text" id="password" name="password">
 		  </td>
 		</tr>
-	
+		<tr>
 		  <td><p style="font-size:11px;width:200px">Don't have an account? <a href="/create">Create Account</a></p></td>
 		  
 		  <td style="text-align:right">
 		  <input type="submit" value="Login" style="background-color:#2856D5;color:#fff">
 		  </td>
-		<tr/>
+		</tr>
 	    </table>
 	  </form>
 	  <br><br>
