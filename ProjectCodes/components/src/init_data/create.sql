@@ -36,5 +36,12 @@ CREATE TABLE library(
         REFERENCES users(userID)
 );
 
+CREATE TABLE profile (
+    profileID SERIAL PRIMARY KEY,
+	username VARCHAR(100) NOT NULL,
+    mydescription VARCHAR(500) NULL,
+    favorites VARCHAR(100) NULL
+);
+
 INSERT INTO users (username,password)
     VALUES ('t','t');
