@@ -477,5 +477,37 @@ app.get('/logout', (req, res) => {
   res.render("pages/logout");
 });
 
+
+//Get Profile 
+app.get('/profile', async (req, res) => {
+	var username = req.session.user.user.username;
+	console.log("calling page profile");
+	
+	if (username != undefined) {
+		console.log("profile-page - username = " + username);
+		try {
+			const [row] = await db.query(
+			  "select * from profile where username=$1;",
+			  [req.session.user.user.username]
+			);
+			if (row){
+				console.log(row.mydescription + ", " + row.favorites);
+				res.render("pages/profile", {mydescription : row.mydescription, favorites : row.favorites, username : username});
+			}
+			else {
+				console.log("no db record in profile table for user = " + req.session.user.username);
+				res.render("pages/profile", {mydescription : '', favorites : '', username : username});
+			}
+		}
+		catch (err) {
+			console.log("profile table returned an error = " + err);
+		}
+	}
+	else {
+		res.render("pages/profile");
+	}
+});
+
+
 app.listen(3000);
 console.log('Server is listening on port 3000');
