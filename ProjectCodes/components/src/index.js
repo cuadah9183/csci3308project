@@ -101,26 +101,26 @@ app.get('/login', async (req, res) =>{
 			// if usernames don't match then tell user to register first
 			else if (row.username != req.query.username) {
 				console.log("Username does not match, please register first");
-				res.redirect("/create", {username, password, message: "User does not exist in the system, please create account first"});
+				res.redirect("/create", 200, {username, password, message: "User does not exist in the system, please create account first"});
 			}
 			else if (password != row.password) {
 				console.log("Passwords don't match, probably entered incorrect password, try logging in again");
-				res.render("pages/login", {message: "Incorrect password for user '" + row.username + "', try logging in again"});
+				res.render("pages/login", 200, {message: "Incorrect password for user '" + row.username + "', try logging in again"});
 			}
 			else {
 				console.log("unknown login error");
-				res.render("pages/login", {message: "unknown login error, try logging in again"});
+				res.render("pages/login", 200, {message: "unknown login error, try logging in again"});
 			}
 				
 		}
 		catch(err) {
 			if (err.toString().startsWith("TypeError: Cannot read properties of undefined (reading 'username')")) {
 				//console.log("user does not exist in the system, go register first = " + err);
-				res.redirect("/create", {username, password, message: "user does not exist in the system, please create account first"});
+				res.redirect("/create", 401, {username, password, message: "user does not exist in the system, please create account first"});
 			}
 			else {
 				console.log("UNKNOWN error = " + err);
-				res.redirect("/create", {message: "UNKNOWN login error, try login again"});
+				res.redirect("/create", 401, {message: "UNKNOWN login error, try login again"});
 			}
 		}
 	}
