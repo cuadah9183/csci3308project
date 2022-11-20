@@ -1,4 +1,4 @@
-INSERT INTO recipe (name, calories, protein, fiber, sodium) VALUES ('Casserole', 450, 18, 12, 280), ('Tea', 120, 4, 0, 50);
+INSERT INTO recipe (name, calories, protein, fat, carbs) VALUES ('Casserole', 450, 18, 12, 280), ('Tea', 120, 4, 0, 50);
 
 INSERT INTO log (recipeID, userID, time, servings) VALUES (1, 1, current_timestamp, 2), (2, 1, current_timestamp + interval '1 hours', 2);
 

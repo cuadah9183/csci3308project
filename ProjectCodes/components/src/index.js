@@ -211,7 +211,7 @@ app.get("/home", async (req, res) => {
 
 	const datequery = "SELECT CURRENT_DATE;"
 	const libquery = "SELECT * FROM recipe r INNER JOIN library l ON r.recipeID = l.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1;";
-	const userquery = "SELECT date(time), time, servings, name, calories, protein, fiber, sodium, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date(time) = current_date ORDER BY time ASC;";
+	const userquery = "SELECT date(time), time, servings, name, calories, protein, fat, carbs, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date(time) = current_date ORDER BY time ASC;";
 	
 	const userdata=[];
 	await db.any (userquery, [user.username])
@@ -249,8 +249,8 @@ app.post("/addLog", (req, res) => {
 	const mealName = req.body.mealName;
 	const calories = req.body.calories;
 	const protein = req.body.protein;
-	const fiber = req.body.fiber;
-	const sodium = req.body.sodium;
+	const fat = req.body.fat;
+	const carbs = req.body.carbs;
 
 	const recID = req.body.saveMeal;
 	const addRecipe = req.body.saveRecipe;
@@ -259,7 +259,7 @@ app.post("/addLog", (req, res) => {
 
 	console.log("addLog called");
 	// If the recipeID does not exist, insert into recipe table
-	const queryAddRecipe = "INSERT INTO recipe (name, calories, protein, fiber, sodium) VALUES ($1, $2, $3, $4, $5);";
+	const queryAddRecipe = "INSERT INTO recipe (name, calories, protein, fat, carbs) VALUES ($1, $2, $3, $4, $5);";
 	// If user chose to save to library, do so
 	const queryAddToLib = `INSERT INTO library (recipeID, userID) VALUES ((SELECT recipeID FROM recipe ORDER BY recipeID DESC LIMIT 1), (SELECT userID FROM users where username = '${user.username}'));`;
 	// Add meal to log
@@ -274,7 +274,7 @@ app.post("/addLog", (req, res) => {
 				// create recipe, save to library, add to log.
 				if (addRecipe == "on") {
 					return task.batch([
-						task.any(queryAddRecipe, [mealName, calories, protein, fiber, sodium]),
+						task.any(queryAddRecipe, [mealName, calories, protein, fat, carbs]),
 						task.any(queryAddToLib),
 						task.any(queryInsertLogNew)
 					]);
@@ -283,7 +283,7 @@ app.post("/addLog", (req, res) => {
 				// create recipe and add to log.
 				{
 					return task.batch([
-						task.any(queryAddRecipe, [mealName, calories, protein, fiber, sodium]),
+						task.any(queryAddRecipe, [mealName, calories, protein, fat, carbs]),
 						task.any(queryInsertLogNew)
 					]);
 				}
@@ -338,11 +338,11 @@ app.post("/addLog", (req, res) => {
 			else if(req.query.sort == "PRO"){
 				userquery += ' ORDER BY protein DESC;';
 			}
-			else if(req.query.sort == "SOD"){
-				userquery += ' ORDER BY sodium ASC;';
+			else if(req.query.sort == "CAR"){
+				userquery += ' ORDER BY carbs ASC;';
 			}
-			else if(req.query.sort == "FIB"){
-				userquery += ' ORDER BY fiber DESC;';
+			else if(req.query.sort == "FAT"){
+				userquery += ' ORDER BY fat DESC;';
 			} else {
 				userquery += ';';
 			}
@@ -443,10 +443,10 @@ app.get("/calendar", (req, res) =>{
 	var logquery;
 
 	if (week == undefined){
-		logquery = "SELECT r.recipeID, name, calories, protein, fiber, sodium, imageurl, date_part('dow', time) AS day, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = date_part('week', current_timestamp);";
+		logquery = "SELECT r.recipeID, name, calories, protein, fat, carbs, imageurl, date_part('dow', time) AS day, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = date_part('week', current_timestamp);";
 	}
 	else{
-		logquery = "SELECT r.recipeID, name, calories, protein, fiber, sodium, imageurl, date_part('dow', time) AS day, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = $2;";
+		logquery = "SELECT r.recipeID, name, calories, protein, fat, carbs, imageurl, date_part('dow', time) AS day, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = $2;";
 	}
 
 	db.any(logquery, [user.username, week])
