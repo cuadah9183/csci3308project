@@ -9,8 +9,8 @@ CREATE TABLE recipe(
     name VARCHAR(45) NOT NULL,
     calories INT,
     protein INT,
-    fiber INT,
-    sodium INT,
+    fat INT,
+    carbs INT,
     imageURL VARCHAR(45)
 );
 

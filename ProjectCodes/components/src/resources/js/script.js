@@ -54,8 +54,8 @@
                     if (entries[j].name.toUpperCase() == inp.value.toUpperCase()) {
                       document.querySelector(`#calories`).value = entries[j].calories;
                       document.querySelector(`#protein`).value = entries[j].protein;
-                      document.querySelector(`#fiber`).value = entries[j].fiber;
-                      document.querySelector(`#sodium`).value = entries[j].sodium;
+                      document.querySelector(`#fat`).value = entries[j].fat;
+                      document.querySelector(`#carbs`).value = entries[j].carbs;
                       document.querySelector(`#saveMeal`).value = entries[j].recipeid;
                     }
                   }
