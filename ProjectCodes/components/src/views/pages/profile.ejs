@@ -1,0 +1,65 @@
+<%- include ('../partials/header') %>
+<%- include ('../partials/menu') %>
+<div class="col"><%- include ('../partials/message') %></div>
+
+<style>
+.textarea-noborder .mx-textarea-input {
+    border: none;
+}
+
+textarea:disabled {
+    cursor: default;
+    background-color:#fff;
+    color: #000;
+    border-color: #fff;
+	
+</style>
+  
+<script type="text/javascript">
+	
+	function EnableDisablefavorites(btnfavorites) {
+
+        var myfavorites = document.getElementById("myfavorites");
+		var mydescription = document.getElementById("mydescription");
+		console.log(myfavorites.innerHTML);
+        if (btnfavorites.value == "Edit") {
+			console.log("button Edit clicked");
+			btnfavorites.value = "Save";
+            myfavorites.removeAttribute("disabled");
+			mydescription.removeAttribute("disabled");
+        } else {
+			console.log("button Save clicked");
+			btnfavorites.value = "Edit";
+			// find the record in profile table, either update or insert
+            myfavorites.setAttribute("disabled", "disabled");
+			mydescription.setAttribute("disabled", "disabled");
+			location.href= '/addProfile';
+        }
+    }
+</script>
+
+<main>
+  <div class="container" style="margin-left:10%">
+	<h2>Profile Page for <%= username %> </h2>
+	
+	<form action="/addProfile" method="POST">
+		<h5>About me:</h5>
+		
+		<textarea disabled="disabled" style="overflow:hidden;" maxlength="250" id="mydescription" 
+		style="border-width:0px;border-style:none;" rows = "3" cols = "80" name = "description"  placeholder="About Me is empty..."> <% if (mydescription != '') { %><%= mydescription %><% } %>
+		</textarea><br>
+		<p style="font-size:11px;color:#888">You can enter upto 250 characters to describe yourself!</p>
+		<hr />
+		
+		<h5>My Favorite Foods:</h5>
+		<textarea disabled="disabled" style="overflow:hidden;" maxlength="100" id="myfavorites" 
+		style="border-width:0px;border-style:none;" rows = "2" cols = "80" name = "favorites" placeholder="My Favorite foods is empty..."><% if (favorites != '') { %><%= favorites %><% } %></textarea><br>
+		<p style="font-size:11px;color:#888">You can enter upto 100 characters to enter your favorite foods/recipes!</p>
+		<input type="button" value="Edit" onclick="EnableDisablefavorites(this);" />
+		<hr />
+	</form>
+
+  </div>
+</main>
+
+<%- include ('../partials/footer') %>
