@@ -465,5 +465,17 @@ app.get("/calendar", (req, res) =>{
 });
 
 
+//Get LOGOUT 
+app.get('/logout', (req, res) => {
+	req.session.user = {
+		api_key: '',
+		username: '',
+		status : "created"
+	};
+	req.session.save();
+	console.log("api_key and username deleted");
+  res.render("pages/logout");
+});
+
 app.listen(3000);
 console.log('Server is listening on port 3000');
