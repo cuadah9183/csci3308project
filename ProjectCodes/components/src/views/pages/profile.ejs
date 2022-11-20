@@ -20,20 +20,21 @@ textarea:disabled {
 	function EnableDisablefavorites(btnfavorites) {
 
         var myfavorites = document.getElementById("myfavorites");
-		var mydescription = document.getElementById("mydescription");
-		console.log(myfavorites.innerHTML);
+	var mydescription = document.getElementById("mydescription");
+	console.log(myfavorites.innerHTML);
         if (btnfavorites.value == "Edit") {
-			console.log("button Edit clicked");
-			btnfavorites.value = "Save";
-            myfavorites.removeAttribute("disabled");
-			mydescription.removeAttribute("disabled");
+		console.log("button Edit clicked");
+		btnfavorites.value = "Save";
+            	myfavorites.removeAttribute("disabled");
+		mydescription.removeAttribute("disabled");
         } else {
-			console.log("button Save clicked");
-			btnfavorites.value = "Edit";
-			// find the record in profile table, either update or insert
-            myfavorites.setAttribute("disabled", "disabled");
-			mydescription.setAttribute("disabled", "disabled");
-			location.href= '/addProfile';
+		console.log("button Save clicked");
+		btnfavorites.value = "Edit";
+		// find the record in profile table, either update or insert
+            	myfavorites.setAttribute("disabled", "disabled");
+		mydescription.setAttribute("disabled", "disabled");
+		var route = '/addProfile?mydescription=' + document.getElementById('mydescription').value + '&myfavorites=' + document.getElementById('myfavorites').value;
+		location.href = route;
         }
     }
 </script>
