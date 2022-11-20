@@ -508,7 +508,6 @@ app.get('/profile', async (req, res) => {
 	}
 });
 
-
 app.get("/addProfile", async (req, res) =>{
 	var mydescription = req.query.mydescription;
 	var myfavorites = req.query.myfavorites;
@@ -518,29 +517,26 @@ app.get("/addProfile", async (req, res) =>{
 	
 	console.log("adding/updating profile in db");
 
-	
 	if (username != undefined) {
-		console.log("profile-page - username = " + username);
+		console.log("addProfile-page - username = " + username);
 		try {
 			const [row] = await db.query(
 			  "select * from profile where username=$1;",
 			  [req.session.user.user.username]
 			);
 			if (row){
-				console.log("record exists in db, so adding query = " + query1);
+				console.log("record exists in db, so adding query");
 				console.log(username + ", " + mydescription + ", " + myfavorites);
 				// update record
 				db.any(query1, [username, mydescription, myfavorites]
 				)
 				.then(() =>{
-					//res.redirect("/profile", 200, {mydescription : mydescription, favorites : myfavorites, username : username})
 					res.render("pages/profile", {mydescription : row.mydescription, favorites : myfavorites, username : username});
 				})
-				//res.render("pages/profile", {mydescription : row.mydescription, favorites : row.favorites, username : username});
 			}
 			else {
 				
-				console.log("record exists in db, so adding query = " + query2);
+				console.log("record does not exists in db, so insert query");
 				console.log(username + ", " + mydescription + ", " + myfavorites);
 				// insert a record
 				db.any(query2,[username, mydescription, myfavorites]
@@ -548,7 +544,6 @@ app.get("/addProfile", async (req, res) =>{
 				.then(() =>{
 					res.redirect("/profile", 200, {mydescription : mydescription, favorites : myfavorites, username : username})
 				})
-				//res.render("pages/profile", {mydescription : '', favorites : '', username : username});
 			}
 		}
 		catch (err) {
