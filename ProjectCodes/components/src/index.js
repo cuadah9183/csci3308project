@@ -509,5 +509,57 @@ app.get('/profile', async (req, res) => {
 });
 
 
+app.get("/addProfile", async (req, res) =>{
+	var mydescription = req.query.mydescription;
+	var myfavorites = req.query.myfavorites;
+	var username = req.session.user.user.username;
+	var query1 = "update profile set mydescription = $2, favorites = $3 where username = $1;";
+	var query2 = "insert into profile (username, mydescription, favorites) values ($1, $2, $3);";
+	
+	console.log("adding/updating profile in db");
+
+	
+	if (username != undefined) {
+		console.log("profile-page - username = " + username);
+		try {
+			const [row] = await db.query(
+			  "select * from profile where username=$1;",
+			  [req.session.user.user.username]
+			);
+			if (row){
+				console.log("record exists in db, so adding query = " + query1);
+				console.log(username + ", " + mydescription + ", " + myfavorites);
+				// update record
+				db.any(query1, [username, mydescription, myfavorites]
+				)
+				.then(() =>{
+					//res.redirect("/profile", 200, {mydescription : mydescription, favorites : myfavorites, username : username})
+					res.render("pages/profile", {mydescription : row.mydescription, favorites : myfavorites, username : username});
+				})
+				//res.render("pages/profile", {mydescription : row.mydescription, favorites : row.favorites, username : username});
+			}
+			else {
+				
+				console.log("record exists in db, so adding query = " + query2);
+				console.log(username + ", " + mydescription + ", " + myfavorites);
+				// insert a record
+				db.any(query2,[username, mydescription, myfavorites]
+				)
+				.then(() =>{
+					res.redirect("/profile", 200, {mydescription : mydescription, favorites : myfavorites, username : username})
+				})
+				//res.render("pages/profile", {mydescription : '', favorites : '', username : username});
+			}
+		}
+		catch (err) {
+			console.log(err);
+			res.redirect("/profile", {
+				message: 'Error updating profile db'
+			});
+		}
+	}	
+ });
+
+
 app.listen(3000);
 console.log('Server is listening on port 3000');
