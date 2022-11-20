@@ -47,8 +47,7 @@ textarea:disabled {
 		<h5>About me:</h5>
 		
 		<textarea disabled="disabled" style="overflow:hidden;" maxlength="250" id="mydescription" 
-		style="border-width:0px;border-style:none;" rows = "3" cols = "80" name = "description"  placeholder="About Me is empty..."> <% if (mydescription != '') { %><%= mydescription %><% } %>
-		</textarea><br>
+		style="border-width:0px;border-style:none;" rows = "3" cols = "80" name = "description"  placeholder="About Me is empty..."><% if (mydescription != '') { %><%= mydescription %><% } %></textarea><br>
 		<p style="font-size:11px;color:#888">You can enter upto 250 characters to describe yourself!</p>
 		<hr />
 		
