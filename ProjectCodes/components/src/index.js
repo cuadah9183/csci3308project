@@ -52,7 +52,46 @@ app.use(
 
 app.use(express.static('/home/node/app'));
 
+//Constants defining nutrients application uses
+const nutrientList = ['calories','protein','fat','carbohydrates'];
+const nutrientInfo = {calories: {label:'Calories',units:''},protein:{label:'Protein',units:'g'},carbohydrates:{label:'Carbs',units:'g'},fat:{label:'Fat',units:'g'}, fiber:{label:'Fiber',units:'g'},sodium:{label:'Sodium',units:'mg'}};
+
 const user = {username: undefined};
+
+/*-----date functions-----*/
+const sqltimestamp = "CURRENT_TIMESTAMP - INTERVAL '7 hours'";
+
+function prettyDate(date) {
+	const months=['Jan','Feb','March','April','May','June','July','Aug', 'Sep','Oct','Nov','Dec'];
+  
+	return months[date.month-1]+' '+date.day+' '+date.year;
+}
+
+
+async function getDateFromWeekday(weekday){
+	var date;
+	console.log('ww',weekday);
+	const rawdatequery="SELECT TO_DATE($1, 'IYYYIWID')";
+	const datequery = "SELECT date_part('day', (" + rawdatequery+")) AS day, date_part('month', (" + rawdatequery+")) AS month, date_part('year', (" + rawdatequery+")) AS year;";
+	console.log('ww',''+weekday.week + weekday.day + weekday.year);
+	await db.one(datequery, [ ''+weekday.year+weekday.week + weekday.day])
+		.then(currdate => {
+			date = currdate;
+		})
+	return date;
+}
+async function getCurrentWeekday(){
+	var weekday;
+
+	const datequery = "SELECT DATE_PART('week', " + sqltimestamp + ") AS week, date_part('dow'," + sqltimestamp + ") AS day, date_part('year'," + sqltimestamp + ") AS year;";
+	await db.one(datequery)
+	.then(date => {
+		weekday = date;
+	})
+	return weekday;
+}
+/*-----end date functions-----*/
+
 
 app.get('/', (req, res) => {
   res.redirect("/login");
@@ -203,112 +242,217 @@ const auth = (req, res, next) => {
 // Authentication Required
 app.use(auth);
 
+/*-----meal functions-----*/
+	/*--meal format: {recipeid,mealid,servings,name,nutrients={calories, protein, etc...}} --*/
+
+
+//Takes flat dictionary from SQL return and formats it like above
+function formatMeals(mealRecords) {
+	var meal;
+	return mealRecords.map(function (record) {
+		var meal = {  nutrients: {} };
+		Object.keys(record).forEach(function (field) {
+			//if the record label exists in nutrientList add it to the nutrients sub-dict
+			if (nutrientList.includes(field)) {
+				meal.nutrients[field] = record[field];
+			}
+			else {
+				meal[field]=record[field];
+			}
+		});
+		return meal;
+	});
+
+}
+
+//gets meal from db based on query and params and returns formatted meal record
+async function getMeals(query,params){
+	var meals;
+
+	await db.any (query, params)
+	  .then(records => {
+		meals=formatMeals(records);
+	})
+	  .catch((err) => {
+		console.log(err);
+	});
+	return meals;
+}
+//adds recipe to database and optionally users library and returns recipeid for added recipe
+async function addToRecipes(body,userID,addToLib) {
+	const queryAddR = "INSERT INTO recipe (name, " +nutrientList.join(", ") + ") VALUES ($1, "+nutrientList.map((f,i)=> "$"+(i+2)).join(", ")+");";
+	const queryAddL = "INSERT INTO library (recipeID, userID) values ($1, $2);";
+	const queryNewID="SELECT recipeID FROM recipe ORDER BY recipeID DESC LIMIT 1;";
+
+	//add to recipe db and get id
+	await db.any(queryAddR,[body.name].concat(nutrientList.map(nutr=>body[nutr]))).catch((err) => {console.log(err);});
+	recID = (await db.one(queryNewID)).recipeid;
+
+	//add to library if selected
+	if (addToLib){
+	    await db.any(queryAddL,[recID,userID]).catch((err) => {console.log(err);});
+	}
+
+	return recID;
+}
+
+//add recipe to meal log
+async function addToLog(userID,recipeID,servings,date){
+	const queryAddLog = "INSERT INTO log (recipeID, userID, time, servings) VALUES ($2, $1," + date + ", $3);";
+	return db.any(queryAddLog, [userID,recipeID, servings]);
+}
+
+
+/*-----end meal functions-----*/
 
 app.get("/home", async (req, res) => {
 
 	console.log("in home page, username = " + user.username);
+	console.log("Request", req.query, Object.keys(req.query).length);
 
-	const datequery = "SELECT CURRENT_DATE;"
+	var weeknday;
+	if (Object.keys(req.query).length==3){
+		weeknday=req.query;
+	}
+	else{
+        weeknday= await getCurrentWeekday();
+	}
+
+	//get meal log for the chosen day
+	const logquery = "SELECT mealid, date_part('hour', time) AS h, date_part('minute', time) AS m, time, r.recipeid, servings, name,"+nutrientList.join(", ")+ ", imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date_part('week', time) = $2 AND date_part('dow', time) = $3 AND date_part('year', time) = $4 ORDER BY time ASC;";
+	const log =await getMeals(logquery,[user.username, weeknday.week, weeknday.day,weeknday.year]);
+
+	//get the user's library
 	const libquery = "SELECT * FROM recipe r INNER JOIN library l ON r.recipeID = l.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1;";
-	const userquery = "SELECT date(time), time, servings, name, calories, protein, fat, carbs, imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date(time) = current_date ORDER BY time ASC;";
-	
-	const userdata=[];
-	await db.any (userquery, [user.username])
-	  .then(daylog => {
-		userdata.push(daylog);
-	})
-	  .catch((err) => {
-		console.log(err);
-		res.redirect("/login");
-	});
-	console.log ('check');
-	await db.any (libquery, [user.username])
-	  .then(library =>{
-		userdata.push(library);
-	})
-	await db.any (datequery)
-	.then(currdate =>{
-	  userdata.push(currdate);
-    })
-	  .catch((err) => {
-		console.log(err);
-		res.redirect("/login");
-	});
-	console.log(userdata);
+	const library =await getMeals(libquery,[user.username]);
 
-  res.render("pages/home", {username: req.session.user.user.username, daylog: userdata[0],recipes: JSON.stringify(userdata[1]), currdate: userdata[2],});
+	//get current date 
+	const currentdate=await getDateFromWeekday(weeknday);
+
+	console.log("userdata", currentdate,log,library);
+
+
+ 
+    res.render("pages/home", {username: req.session.user.user.username, weekday:weeknday, currdate: prettyDate(currentdate), nutrients:{fields: nutrientList,info:nutrientInfo}, daylog: log,recipes: library});
 
 });
 
 
+
+/*-----log interface-----*/
 
 // Add a meal to the meal log
-app.post("/addLog", (req, res) => {
+app.post("/addLog", async (req, res) => {
 	// Get entries from fields
-	const mealName = req.body.mealName;
-	const calories = req.body.calories;
-	const protein = req.body.protein;
-	const fat = req.body.fat;
-	const carbs = req.body.carbs;
-
-	const recID = req.body.saveMeal;
+	const servings = req.body.servings;
+	const mealdate = {year:parseInt(req.body.year), week: parseInt(req.body.week), day: parseInt(req.body.day)};
 	const addRecipe = req.body.saveRecipe;
 
-	console.log(recID, addRecipe);
+	const currdate= await getCurrentWeekday()
 
-	console.log("addLog called");
-	// If the recipeID does not exist, insert into recipe table
-	const queryAddRecipe = "INSERT INTO recipe (name, calories, protein, fat, carbs) VALUES ($1, $2, $3, $4, $5);";
-	// If user chose to save to library, do so
-	const queryAddToLib = `INSERT INTO library (recipeID, userID) VALUES ((SELECT recipeID FROM recipe ORDER BY recipeID DESC LIMIT 1), (SELECT userID FROM users where username = '${user.username}'));`;
-	// Add meal to log
-	const queryInsertLogNew = `INSERT INTO log (recipeID, userID, time) VALUES ((SELECT recipeID from recipe order by recipeID desc limit 1), (select userID from users where username = '${user.username}'), current_timestamp);`;
-	const queryInsertLogOld = `INSERT INTO log (recipeID, userID, time) VALUES ($1, (select userID from users where username = '${user.username}'), current_timestamp);`;
+	console.log("addlog currdate", mealdate)
+	console.log("checkfunc", currdate);
 
-	if (req.body.mealName !== null) {
-		db.task('get-everything', task => {
-			// If the recipe does not exist already (it does not exist in the library).
-			if (recID == "None") {
-				// If recipe does not exist and user chose to save to library,
-				// create recipe, save to library, add to log.
-				if (addRecipe == "on") {
-					return task.batch([
-						task.any(queryAddRecipe, [mealName, calories, protein, fat, carbs]),
-						task.any(queryAddToLib),
-						task.any(queryInsertLogNew)
-					]);
-				} else
-				// If recipe does not exist, but user does not wish to save to library,
-				// create recipe and add to log.
-				{
-					return task.batch([
-						task.any(queryAddRecipe, [mealName, calories, protein, fat, carbs]),
-						task.any(queryInsertLogNew)
-					]);
-				}
-			}
-			else {
+	var recID = req.body.saveMeal;
 
-				// If recipe does exist (is in library) and is not to be saved to library,
-				// just add to log.
-				return task.batch([
-					task.any(queryInsertLogOld, [recID])
-				]);
-
-			}
-
-		})
-			.then(() => {
-				res.redirect("/home")
-			})
-			.catch((err) => {
-				console.log(err);
-				res.redirect("/login");
-			})
+	var date;
+	if (currdate.day == mealdate.day && currdate.week==mealdate.week && currdate.year==mealdate.year){
+		date = sqltimestamp;
 	}
+	else{
+		date = "(SELECT TO_DATE('"+req.body.year + req.body.week + req.body.day +"', 'IYYYIWID'))";
+	}
+
+
+	//if reciped doesn't already exist in database add it and get new recipeid
+	if (recID == "None") {
+		recID=await addToRecipes(req.body,req.session.user.ID,addRecipe=="on");
+	}    
+
+	//add to log and then refresh the page
+	addToLog(req.session.user.ID,recID,servings,date)
+	.then(() => {
+		res.redirect("/home?week=" + mealdate.week +"&day=" + mealdate.day +"&year="+mealdate.year);
+	})
+	.catch((err) => {
+		console.log(err);
+		res.redirect("/login");
+	})
+
+});
+
+app.post("/editLog", (req, res) => {
+	const mealID = req.body.saveMeal;
+	const servings = req.body.servings;
+	const mealdate = {week: req.body.week, day: req.body.day, year:req.body.year};
+
+	const queryEdit = "UPDATE log SET servings = $1 WHERE mealid = $2;";
+
+	db.task('editMeal', task => {
+		return task.any(queryEdit, [servings, mealID])
+	})
+	.then(() => {
+		res.redirect("/home?week=" + mealdate.week +"&day=" + mealdate.day +"&year="+mealdate.year);
+		})
+	.catch((err) => {
+		console.log(err);
+		res.redirect("/login");
+	})
+
+
 });
 
 
+app.post("/delLog",(req,res) =>{
+	console.log(req.body.mealid);
+
+	const mealid = req.body.mealid;
+	const mealdate = {week: req.body.week, day: req.body.day, year:req.body.year};
+
+	queryDel = "DELETE FROM log WHERE mealid = $1;";
+
+	db.task("delMeal", task => {
+		return task.any(queryDel, [mealid])
+	})
+	.then(() => {
+		res.redirect("/home?week=" + mealdate.week +"&day=" + mealdate.day +"&year="+mealdate.year);
+		})
+	.catch((err) => {
+		console.log(err);
+		res.redirect("/login");
+	})
+
+});
+/*-----end log interface----*/
+
+app.get("/calendar", async (req, res) =>{
+	console.log("loading calendar for " + user.username);
+	var week=req.query.week;
+	var year=req.query.year;
+	var logquery = "SELECT r.recipeID, name, " +nutrientList.join(", ") + ", imageurl, date(time) AS date, date_part('dow', time) AS day, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = $2;";
+
+
+
+	//set week if no week provided
+	if (week == undefined){
+		const datequery = "SELECT DATE_PART('week', " + sqltimestamp + ") AS week;"
+		year='2022';
+		await db.any(datequery)
+		.then (currweek =>{
+			week = currweek[0].week;
+		})
+	}
+	//get day range for the current week
+    const weekdayrange=[await getDateFromWeekday({year:year, week:week,day:1}),await getDateFromWeekday({year:year, week:week,day:7})];
+	console.log(weekdayrange);
+
+	weeklog=await getMeals(logquery,[user.username, week]);
+	console.log('calmeals',weeklog);
+	res.render("pages/calendar", {username: req.session.user.user.username, weeklog: weeklog, year:year,weeknum: week,dayrange:[prettyDate(weekdayrange[0]),prettyDate(weekdayrange[1])], nutrients:{fields: nutrientList,info:nutrientInfo}});
+
+
+
+});
 
  app.get("/library", (req, res) => {
 	var userquery = '';
@@ -344,7 +488,7 @@ app.post("/addLog", (req, res) => {
 				userquery += ' ORDER BY protein DESC;';
 			}
 			else if(req.query.sort == "CAR"){
-				userquery += ' ORDER BY carbs ASC;';
+				userquery += ' ORDER BY carbohydrates ASC;';
 			}
 			else if(req.query.sort == "FAT"){
 				userquery += ' ORDER BY fat DESC;';
@@ -372,6 +516,53 @@ app.post("/addLog", (req, res) => {
 		message: 'Database call failed.',
 		error: true});
 	});
+});
+
+app.post("/addSpoonToLib",async (req,res)=> {
+	console.log("adding recipe to library...",req.body);
+	var SpoonRecipeData,SpoonRecipeName;
+//input for call to 3rd party
+	const options = {
+		method: 'GET',
+		url: 'https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/' + req.body.recipeid+'/information',
+		params: {
+			includeNutrition: true
+		},
+		headers: {
+			'X-RapidAPI-Key': req.session.user.api_key,
+			'X-RapidAPI-Host': req.session.user.api_host
+		}
+	};
+ 
+	console.log(options.url)
+ 
+	await axios.request(options).then(function (results) {
+		// console.log(typeof results.data.results);
+		// console.log(results.data)
+		SpoonRecipeName = results.data.title;
+		SpoonRecipeData = results.data.nutrition.nutrients;
+	})
+		.catch(function (error) {
+			console.error(error);
+		});
+
+
+	console.log(SpoonRecipeData);
+	
+	recipeData={name:SpoonRecipeName};
+	nutrientList.forEach(function(nutr){
+		SpoonRecipeData.forEach(function(n,i) {
+			if (n.name.toUpperCase()==nutr.toUpperCase()) {
+				recipeData[nutr]=n.amount;
+			}
+		});
+	});
+
+	console.log("RECIPE",recipeData);
+
+
+	await addToRecipes(recipeData, req.session.user.ID,true);
+
 });
 
 //3rd party calls to Spoontacular https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
@@ -440,35 +631,6 @@ app.get("/discover",(req, res) => {
 		});
 	})}
 });
-
-
-app.get("/calendar", (req, res) =>{
-	console.log("loading calendar for " + user.username);
-	const week=req.query.week;
-	var logquery;
-
-	if (week == undefined){
-		logquery = "SELECT r.recipeID, name, calories, protein, fat, carbs, imageurl, date_part('dow', time) AS day, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = date_part('week', current_timestamp);";
-	}
-	else{
-		logquery = "SELECT r.recipeID, name, calories, protein, fat, carbs, imageurl, date_part('dow', time) AS day, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = $2;";
-	}
-
-	db.any(logquery, [user.username, week])
-	.then (weeklog => {
-		console.log(weeklog);
-		var cweek;
-		if (weeklog.length == 0){
-			cweek = req.query.week;
-		}
-		else{
-			cweek = weeklog[0].week;
-		}
-		
-		res.render("pages/calendar", {username: req.session.user.user.username, weeklog: weeklog, weeknum:cweek});
-	})
-});
-
 
 //Get LOGOUT 
 app.get('/logout', (req, res) => {

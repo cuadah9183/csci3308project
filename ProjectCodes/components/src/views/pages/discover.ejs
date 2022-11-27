@@ -40,8 +40,8 @@
                         <p>`+ recipe.readyInMinutes +` mins</p>
                     </div>
                     <div class="col-sm">
-                        <form action="">
-                            <input type="submit" value="Add to Library" />
+                        <form action="/addSpoonToLib" method="POST">
+                            <button type="submit" name="recipeid" value=`+recipe.id+`> Add to Library </button>
                         </form>
                     </div>
                     <div class="col-sm">
