@@ -204,7 +204,6 @@ const auth = (req, res, next) => {
 app.use(auth);
 
 
-//username is always undefined here
 app.get("/home", async (req, res) => {
 
 	console.log("in home page, username = " + user.username);
@@ -314,6 +313,12 @@ app.post("/addLog", (req, res) => {
  app.get("/library", (req, res) => {
 	var userquery = '';
 	
+	//bug fix surrounding lastQuery
+	if(req.query.flag){
+		//user just clicked on library tab. reset .lastQuery
+		req.session.user.lastQuery = "";
+	}
+
 	//if userSearch passed via req, take it into acccount when building query
 	if(!req.query.userSearch){
 		//undefined, pull every meal
