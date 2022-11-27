@@ -10,7 +10,7 @@ CREATE TABLE recipe(
     calories INT,
     protein INT,
     fat INT,
-    carbs INT,
+    carbohydrates INT,
     imageURL VARCHAR(45)
 );
 

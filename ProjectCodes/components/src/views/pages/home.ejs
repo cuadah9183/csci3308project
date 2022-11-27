@@ -2,50 +2,110 @@
 <%- include ('../partials/menu') %>
 <div class="col"><%- include ('../partials/message') %></div>
 
+
+
 <main>
   
   <div class="container">
 	<h2>Welcome User : <%= username %></h2>
-  <!-- removed .date from daylog[0].date so home page loads after login -->
-  <h4>Date: <%= currdate[0].current_date %></h4>
-  <p></p>
-  <div class="row" style="column-gap:20px; row-gap:20px">
-  <%if (daylog){
-    var res = '';
-    daylog.forEach(function(item) {
-      var mealArr="{name:'"+item.name+"',calories:'"+item.calories+"',protein:'"+item.protein+"',carbs:'"+item.carbs+"',fat:'"+item.fat+"'}";
-      res +=  '<div class="card" style="width:350px">' +
-        '<img class="card-img-top" src="" alt="Card image"> ' +
-        '<div class="card-body"> ' +
-          '<h4 class="card-title text-center">' + item.name + '</h4>' +
-          '<h6 class="card-subtitle mb-2 text-muted text-center">' + item.time + '</h6>' +
-          '<p class="card-text"><b>Nutrition Info:</b></p>' +
-          '<ul class="list-group list-group-flush">' +
-            '<li class="list-group-item">Calories: ' + item.calories + '</li>' +
-            '<li class="list-group-item">Protein: ' + item.protein + 'g</li>' +
-            '<li class="list-group-item">Carbs: ' + item.carbs + 'g</li>' +
-            '<li class="list-group-item">Fat: ' + item.fat + 'g</li>' +
-          '</ul>' +
-          '<button id="edit" type="button" class="btn btn-primary float-end" onclick="addMealModal(' +mealArr+')">Edit</button>' +
-        '</div>' +
-      '</div>';
-      
-    });
-    res += '<div class="card" style="width:350px">' +
-      '<img class="card-img-top" src="" alt="Card image"> ' +
-      '<div class="card-body"> ' +
-        '<button id="add" type="button" class="btn btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addMealModal" style="margin-top: 265px">Add</button>' +
-      '</div>' +
-    '</div></div>' +
-    '<p></p>';%>
-  <%- res %>
-<% } %>
+  
+  <div style="display:flex">
+    <form action="/home" method="GET">
+      <input type="hidden" name="week" value=<%- parseInt(weekday.week)+Math.floor((parseInt(weekday.day)-1-1)/7) %> />
+      <input type="hidden" name="day" value=<%- parseInt(weekday.day)-1-Math.floor((parseInt(weekday.day)-1-1)/7)*7 %> />
+      <input type="hidden" name="year" value=2022 />
+      <button type="submit" class="btn" style="border-color: black;">
+        <</button>
+    </form>
+    <h4 style="margin-left:15px;margin-right:15px">
+      <%= currdate %>
+    </h4>
+    <form action="/home" method="GET">
+      <input type="hidden" name="week" value=<%- parseInt(weekday.week)+Math.floor((parseInt(weekday.day)-1+1)/7) %> />
+      <input type="hidden" name="day" value=<%- parseInt(weekday.day)+1-Math.floor((parseInt(weekday.day)-1+1)/7)*7 %> />
+      <input type="hidden" name="year" value=2022 />
+      <button type="submit" class="btn" style="border-color: black;">></button>
+    </form>
+  </div>
 
- <%- include ('../partials/addMeal') %>
+
+  <%
+  function mealString(item,func){
+    return "{mealid:'"+item.mealid+"',recipeid:'"+item.recipeid+"',name:'"+item.name+"',servings:'"+item.servings+"',nutrients: {"+
+                              nutrients.fields.map(func).join(",")+"}}";
+  }  
+  
+  %>
+
+    <p></p>
+    <div class="row" style="column-gap:20px; row-gap:20px">
+    <%
+    
+    
+      
+  
+      const defaultMeal= mealString({servings: 1, mealid:'None', recipeid: 'None', name: ''},item=>item+":''");
+      const dateString= "{year:" + weekday.year + ", week:" + weekday.week + ", day:" + weekday.day + "}";
+
+      if (daylog){
+      var res = '';
+      var tod = '';
+      var min = '';
+
+      daylog.forEach(function(item) {
+        if (item.h >= 12){
+          tod = 'PM';
+        }
+        else{
+          tod = 'AM';
+        }
+        if (item.m < 10){
+          min = '0' + item.m;
+        }
+        else{
+          min = item.m;
+        }
+
+        
+        const logMeal=mealString(item,nutr=> nutr+":"+ item.nutrients[nutr]);
+
+        res +=  '<div class="card" style="width:350px">' +
+          '<img class="card-img-top" src="'+ item.imageurl +'" alt=""> ' +
+          '<div class="card-body"> ' +
+            '<h4 class="card-title text-center">' + item.name + '</h4>' +
+            '<h6 class="card-subtitle mb-2 text-muted text-center">' + ((item.h-1+12) % 12+1) + ':' + min + ' ' + tod + '</h6>' +
+            '<p class="card-text"><b>Servings: ' + item.servings + '</b></p>' +
+            '<p class="card-text"><b>Nutrition Info:</b></p>' +
+            '<ul class="list-group list-group-flush">'
+              nutrients.fields.forEach(function(nutr){
+                    res+='<li class="list-group-item">'+nutrients.info[nutr].label+': ' + item.nutrients[nutr]*item.servings+' '+nutrients.info[nutr].units + '</li>'
+              });  
+        res+='</ul>' +
+            '<button id="edit" type="button" class="btn btn-primary float-end" style="background-color: rgb(241, 252, 247); color: rgb(0, 197, 112); border-color: rgb(0, 197, 112);" onclick="editMealModal(' +logMeal+ ','+dateString+')">Edit</button>' +
+            '<form id="del" action="/delLog" method="POST">'+
+              '<input type="hidden" name="year" value="'+weekday.year+'"/>'+
+              '<input type="hidden" name="week" value="'+weekday.week+'"/>'+
+              '<input type="hidden" name="day" value="'+weekday.day+'"/>'+
+              '<button type="submit" class="btn btn-primary" style="background-color: rgb(255, 245, 245); color: red; border-color: red;" name="mealid" value="'+item.mealid+'">Delete</button>' +
+            '</form>'+
+          '</div>' +
+        '</div>';
+      });
+      res += '<div class="card" style="width:350px">' +
+        '<img class="card-img-top" src="" alt=""> ' +
+        '<div class="card-body"> ' +
+          '<button id="add" type="button" class="btn btn-primary float-end" data-bs-toggle="modal" data-bs-target="#addMealModal" style="background-color: rgb(233, 242, 255); color: rgb(0, 102, 255); border-color: rgb(0, 102, 255);" onclick="addMealModal('+defaultMeal+','+ dateString +')">Add</button>' +
+        '</div>' +
+      '</div></div>' +
+      '<p></p>';%>
+    <%- res %>
+  <% } %>
+
+ <%- include ('../partials/addMeal',{nutrients:nutrients}) %>
   <script src="/resources/js/script.js"></script>
   <script>
-     var rec= <%- recipes %>;
-     recipeAutocomplete(document.getElementById("myInput"),rec);
+     var rec= <%- JSON.stringify(recipes) %>;
+     recipeAutocomplete(document.getElementById("mealName"),rec);
   </script> 
 
 
