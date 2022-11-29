@@ -28,9 +28,10 @@
     </form>
   </div>
 
+
   <%
   function mealString(item,func){
-    return "{mealid:'"+item.mealid+"',recipeid:'"+item.recipeid+"',name:'"+item.name+"',servings:'"+item.servings+"',nutrients: {"+
+    return "{mealid:'"+item.mealid+"',recipeid:'"+item.recipeid+"',name:'"+item.name+"',servings:'"+item.servings+"',imageurl:'"+item.imageurl+"',nutrients: {"+
                               nutrients.fields.map(func).join(",")+"}}";
   }  
   
@@ -43,7 +44,7 @@
     
       
   
-      const defaultMeal= mealString({servings: 1, mealid:'None', recipeid: 'None', name: ''},item=>item+":''");
+      const defaultMeal= mealString({servings: 1, mealid:'None', recipeid: 'None', imageurl: '', name: ''},item=>item+":''");
       const dateString= "{year:" + weekday.year + ", week:" + weekday.week + ", day:" + weekday.day + "}";
 
       if (daylog){
@@ -69,7 +70,7 @@
         const logMeal=mealString(item,nutr=> nutr+":"+ item.nutrients[nutr]);
 
         res +=  '<div class="card" style="width:350px">' +
-          '<img class="card-img-top" src="'+ item.imageurl +'" alt=""> ' +
+          '<img class="card-img-top" src="'+ item.imageurl +'" alt="" style="height: 250px;"> ' +
           '<div class="card-body"> ' +
             '<h4 class="card-title text-center">' + item.name + '</h4>' +
             '<h6 class="card-subtitle mb-2 text-muted text-center">' + ((item.h-1+12) % 12+1) + ':' + min + ' ' + tod + '</h6>' +
