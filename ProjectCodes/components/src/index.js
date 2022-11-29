@@ -68,26 +68,42 @@ function prettyDate(date) {
 }
 
 
-async function getDateFromWeekday(weekday){
+async function getDateFromWeekday(weekday,ivl){
+	if (ivl){
+		interval=" + INTERVAL '"+ivl+"'";
+	}
+	else{
+		interval="";
+	}
+
 	var date;
-	console.log('ww',weekday);
-	const rawdatequery="SELECT TO_DATE($1, 'IYYYIWID')";
+	const rawdatequery="SELECT TO_DATE($1, 'IYYYIWID')"+interval;
 	const datequery = "SELECT date_part('day', (" + rawdatequery+")) AS day, date_part('month', (" + rawdatequery+")) AS month, date_part('year', (" + rawdatequery+")) AS year;";
-	console.log('ww',''+weekday.week + weekday.day + weekday.year);
-	await db.one(datequery, [ ''+weekday.year+weekday.week + weekday.day])
+
+	await db.one(datequery, [ ''+weekday.year+parseInt(weekday.week).toLocaleString(undefined, {minimumIntegerDigits: 2}) + weekday.day])
 		.then(currdate => {
 			date = currdate;
 		})
 	return date;
 }
-async function getCurrentWeekday(){
+async function getCurrentWeekday(date){
+	var timestamp;
+	if (date){
+		timestamp="TIMESTAMP '"+date.year+"-"+date.month+"-"+date.day+"'";
+	}
+	else {
+		timestamp=sqltimestamp;
+	}
+
+
 	var weekday;
 
-	const datequery = "SELECT DATE_PART('week', " + sqltimestamp + ") AS week, date_part('dow'," + sqltimestamp + ") AS day, date_part('year'," + sqltimestamp + ") AS year;";
+	const datequery = "SELECT DATE_PART('week', " + timestamp + ") AS week, date_part('isodow'," + timestamp + ") AS day, date_part('isoyear'," + timestamp + ") AS year;";
 	await db.one(datequery)
 	.then(date => {
 		weekday = date;
 	})
+
 	return weekday;
 }
 /*-----end date functions-----*/
@@ -311,15 +327,24 @@ app.get("/home", async (req, res) => {
 	console.log("Request", req.query, Object.keys(req.query).length);
 
 	var weeknday;
-	if (Object.keys(req.query).length==3){
-		weeknday=req.query;
+	if (Object.keys(req.query).length>=3){
+		if (!req.query.dayshift){
+			req.query.dayshift=0;
+		}
+		console.log('daysh',req.query.dayshift);
+		weeknday=await getCurrentWeekday(await getDateFromWeekday({day:req.query.day, week:req.query.week, year:req.query.year},req.query.dayshift+' day')); //because postgresql
+		
+		
 	}
 	else{
         weeknday= await getCurrentWeekday();
 	}
+	console.log('oldweekday',{day:req.query.day, week:req.query.week, year:req.query.year});
+	console.log('newweekday',weeknday);
+
 
 	//get meal log for the chosen day
-	const logquery = "SELECT mealid, date_part('hour', time) AS h, date_part('minute', time) AS m, time, r.recipeid, servings, name,"+nutrientList.join(", ")+ ", imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date_part('week', time) = $2 AND date_part('dow', time) = $3 AND date_part('year', time) = $4 ORDER BY time ASC;";
+	const logquery = "SELECT mealid, date_part('hour', time) AS h, date_part('minute', time) AS m, time, r.recipeid, servings, name,"+nutrientList.join(", ")+ ", imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date_part('week', time) = $2 AND date_part('isodow', time) = $3 AND date_part('isoyear', time) = $4 ORDER BY time ASC;";
 	const log =await getMeals(logquery,[user.username, weeknday.week, weeknday.day,weeknday.year]);
 
 	//get the user's library
@@ -329,10 +354,12 @@ app.get("/home", async (req, res) => {
 	//get current date 
 	const currentdate=await getDateFromWeekday(weeknday);
 
+
+
 	console.log("userdata", currentdate,log,library);
 
 
- 
+	console.log('datetest',await getCurrentWeekday(currentdate));
     res.render("pages/home", {username: req.session.user.user.username, weekday:weeknday, currdate: prettyDate(currentdate), nutrients:{fields: nutrientList,info:nutrientInfo}, daylog: log,recipes: library});
 
 });
@@ -427,28 +454,27 @@ app.post("/delLog",(req,res) =>{
 
 app.get("/calendar", async (req, res) =>{
 	console.log("loading calendar for " + user.username);
-	var week=req.query.week;
-	var year=req.query.year;
-	var logquery = "SELECT r.recipeID, name, " +nutrientList.join(", ") + ", imageurl, date(time) AS date, date_part('dow', time) AS day, date_part('week', time) AS week, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = $2;";
-
-
-
+	
 	//set week if no week provided
-	if (week == undefined){
-		const datequery = "SELECT DATE_PART('week', " + sqltimestamp + ") AS week;"
-		year='2022';
-		await db.any(datequery)
-		.then (currweek =>{
-			week = currweek[0].week;
-		})
+	var date;
+	if (Object.keys(req.query).length==0){
+		date=await getCurrentWeekday();	
 	}
+	else{
+		date =await getCurrentWeekday(await getDateFromWeekday({day:1, week:req.query.week, year:req.query.year},req.query.weekshift+' week')); //because postgresql
+	}
+	const week=date.week;
+	const year=date.year;
+
+	var logquery = "SELECT r.recipeID, name, " +nutrientList.join(", ") + ", imageurl, date(time) AS date, date_part('isodow', time) AS day, date_part('week', time) AS week, date_part('year', time) AS year, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = $2;";
+
 	//get day range for the current week
     const weekdayrange=[await getDateFromWeekday({year:year, week:week,day:1}),await getDateFromWeekday({year:year, week:week,day:7})];
 	console.log(weekdayrange);
 
 	weeklog=await getMeals(logquery,[user.username, week]);
 	console.log('calmeals',weeklog);
-	res.render("pages/calendar", {username: req.session.user.user.username, weeklog: weeklog, year:year,weeknum: week,dayrange:[prettyDate(weekdayrange[0]),prettyDate(weekdayrange[1])], nutrients:{fields: nutrientList,info:nutrientInfo}});
+	res.render("pages/calendar", {username: req.session.user.user.username, weeklog: weeklog, year:year,week: week,dayrange:[prettyDate(weekdayrange[0]),prettyDate(weekdayrange[1])], nutrients:{fields: nutrientList,info:nutrientInfo}});
 
 
 

@@ -6,12 +6,12 @@ CREATE TABLE users (
 
 CREATE TABLE recipe(
     recipeID SERIAL PRIMARY KEY,
-    name VARCHAR(45) NOT NULL,
+    name VARCHAR(500) NOT NULL,
     calories INT,
     protein INT,
     fat INT,
     carbohydrates INT,
-    imageURL VARCHAR(45)
+    imageURL VARCHAR(500) DEFAULT 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Pictograms-nps-food_service-2.svg/640px-Pictograms-nps-food_service-2.svg.png'
 );
 
 CREATE TABLE log(
