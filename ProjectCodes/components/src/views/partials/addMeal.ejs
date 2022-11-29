@@ -7,15 +7,23 @@
       </div>
       <div class="modal-body">
         <!--meal name input, add search function-->
-        
+        <img id="img" name="img" src="" alt="" style="display: none; width:450px;">
+        <p></p>
         <form id="mealForm" autocomplete="off" action="/addLog" method="POST">
-          <div class="autocomplete" style="width:300px;">
-            <input id="mealName" type="text" name="name" placeholder="Meal Name" onchange="resetRecID()">
+          <div class="autocomplete" style="width:500px;">
+            <input id="mealName" type="text" name="name" placeholder="Meal Name" onchange="resetRecID()" style="width: 400px">
+          </div>
+          
+          <!--Image URL-->
+          <div id="imgblock" class="form-group row" style="margin-top: 20px">
+            <div class="col-sm-8" style="width: 500px">
+              <input type="url" placeholder="Image URL" id="imageurl" name="imageurl" onchange="resetRecID()" style="width: 400px">
+            </div>
           </div>
           <!--Number of Servings-->
           <div class="form-group row" style="margin-top: 20px;">
-            <label for="servings" class="col-sm-2 col-form-label">Servings</label>
-            <div class="col-sm-10">
+            <label for="servings" class="col-sm-2 col-form-label" >Servings</label>
+            <div class="col-sm-3">
               <input type="number" class="form-control" id="servings" name="servings" value="1">
             </div>
           </div>
@@ -36,8 +44,8 @@
 
             nutrientBlocks+=
             `<div class="form-group row" style="height: 50px; margin-left:40px">
-              <label for="`+item+`" class="col-sm-2 col-form-label">`+label+`</label>
-              <div class="col-sm-10" style="width:150px">
+              <label for="`+item+`" class="col-sm-3 col-form-label">`+label+`</label>
+              <div class="col-sm-4" style="width:150px">
                 <input type="number" class="form-control" id="`+item+`" name="`+item+`" onchange="resetRecID()">
               </div>
             </div>`
@@ -58,8 +66,8 @@
           </div>
           <!--Save/Cancel-->
             <div id='modalFooter' class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="submit" class="btn btn-primary" id="saveMeal" name="saveMeal" value="None">Save
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color: rgb(237, 237, 237); color: rgb(139, 140, 142); border-color: rgb(139, 140, 142);">Close</button>
+              <button type="submit" class="btn btn-primary" id="saveMeal" name="saveMeal" value="None" style="background-color: rgb(233, 242, 255); color: rgb(0, 102, 255); border-color: rgb(0, 102, 255);">Save
                 changes</button>
             </div>
 

@@ -74,6 +74,13 @@ function resetRecID(){
 
 }
 
+function showImage(){
+  document.getElementById('imgblock').style.display="none";
+  //document.getElementById('img').src = meal.imageurl;
+  document.getElementById('img').style.display="inline";
+
+}
+
 function showModal(){
   const modal = new bootstrap.Modal('#addMealModal');
   modal.show()
@@ -88,7 +95,7 @@ function viewMealModal(meal) {
   }
 
   document.getElementById('modalFooter').hidden = true;
-
+  showImage();
   showModal();
 
 }
@@ -100,7 +107,13 @@ function setMealModal(meal,weekday) {
     document.getElementById('modalWeek').value = weekday.week;
     document.getElementById('modalDay').value = weekday.day;
   }
-
+  
+  
+  document.getElementById('img').src = meal.imageurl;
+  document.getElementById('img').style.display="inline";
+  document.getElementById('imgblock').style.display="inline-flex";
+  document.getElementById('imageurl').value = meal.imageurl;
+  
   document.querySelector(`#servings`).value = meal.servings;
   document.querySelector(`#saveMeal`).value = meal.recipeid;
   document.getElementById('mealName').value = meal.name;
@@ -121,6 +134,7 @@ function addMealModal(meal,weekday) {
   document.getElementById('modalTitle').innerHTML='Add Meal';
   document.querySelector(`#saveMeal`).disabled = true;
 
+
 }
 
 function editMealModal(meal,weekday){
@@ -129,15 +143,17 @@ function editMealModal(meal,weekday){
   document.getElementById('mealForm').action="/editLog";
   document.querySelector(`#saveMeal`).value = meal.mealid;
 
+
   document.getElementById('mealName').disabled = true;
   for (const [key, value] of Object.entries(meal.nutrients)) {
     console.log('list',key, value);
   
-  document.getElementById(key).disabled = true;
+    document.getElementById(key).disabled = true;
   
 
   }
 
+  showImage();
 
   showModal();
   

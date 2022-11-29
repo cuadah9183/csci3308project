@@ -10,7 +10,11 @@ INSERT INTO recipe (name, imageurl, calories,fat,protein,carbohydrates) VALUES (
 ('Skinny Beef Stroganoff On Zucchini Ribbons','https://spoonacular.com/recipeImages/551385-556x370.png',425,12,56,25),
 ('Eastern European Red Lentil Soup','https://spoonacular.com/recipeImages/759690-556x370.jpg',208,5,11,32);
 
-INSERT INTO log (recipeID, userID, time, servings) VALUES (1, 1, current_timestamp - interval '7 hours', 2), (2, 1, current_timestamp - interval '6 hours', 2), (1, 1, current_timestamp - interval '2 days', 1), (1, 1, current_timestamp - interval '8 days', 1);
+INSERT INTO log (recipeID, userID, time, servings) VALUES (1, 1, current_timestamp - interval '7 hours', 2), 
+(2, 1, current_timestamp - interval '6 hours', 2), (1, 1, current_timestamp - interval '1 days', 1), (3, 1, current_timestamp - interval '2 days', 1),
+(4, 1, current_timestamp - interval '3 days', 1), (5, 1, current_timestamp - interval '3 days', 1), (6, 1, current_timestamp - interval '4 days', 1),
+(7, 1, current_timestamp - interval '5 days', 1), (8, 1, current_timestamp - interval '5 days', 1), (9, 1, current_timestamp - interval '6 days', 1),
+(10, 1, current_timestamp - interval '7 days', 1), (11, 1, current_timestamp - interval '8 days', 1);
 
 INSERT INTO library (recipeID, userID) VALUES (1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1),(8,1),(9,1),(10,1),(11,1);
 

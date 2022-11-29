@@ -24,7 +24,7 @@
             var listElement = '';
             var baseUri = results.data.baseUri;
 
-            results.data.results.forEach(function(recipe){
+            results.data.results.forEach(function(recipe,i){
                 listElement += `
                 <div class="row" style="padding-top: 15px">
                     <div class="col">
@@ -41,8 +41,9 @@
                     </div>
                     <div class="col-sm">
                         <form action="/addSpoonToLib" method="POST">
-                            <button type="submit" name="recipeid" value=`+recipe.id+`> Add to Library </button>
+                            <button type="submit" name="recipeid" value=`+recipe.id+` onclick="showSuccess(`+i+`)"> Add to Library </button>
                         </form>
+                        <h6 id="success`+i+`" style="color:green; visibility:hidden">Successfully added</h6>
                     </div>
                     <div class="col-sm">
                         <form action="`+ recipe.sourceUrl +`">
@@ -57,5 +58,5 @@
         <%- listElement %>
     </div>
 </main>
-
+<script src="/resources/js/discover.js"></script>
 <%- include ('../partials/footer') %>

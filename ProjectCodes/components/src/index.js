@@ -296,12 +296,12 @@ async function getMeals(query,params){
 }
 //adds recipe to database and optionally users library and returns recipeid for added recipe
 async function addToRecipes(body,userID,addToLib) {
-	const queryAddR = "INSERT INTO recipe (name, " +nutrientList.join(", ") + ") VALUES ($1, "+nutrientList.map((f,i)=> "$"+(i+2)).join(", ")+");";
+	const queryAddR = "INSERT INTO recipe (name, imageurl, " +nutrientList.join(", ") + ") VALUES ($1, $2, "+nutrientList.map((f,i)=> "$"+(i+3)).join(", ")+");";
 	const queryAddL = "INSERT INTO library (recipeID, userID) values ($1, $2);";
 	const queryNewID="SELECT recipeID FROM recipe ORDER BY recipeID DESC LIMIT 1;";
 
 	//add to recipe db and get id
-	await db.any(queryAddR,[body.name].concat(nutrientList.map(nutr=>body[nutr]))).catch((err) => {console.log(err);});
+	await db.any(queryAddR,[body.name,body.imageurl].concat(nutrientList.map(nutr=>body[nutr]))).catch((err) => {console.log(err);});
 	recID = (await db.one(queryNewID)).recipeid;
 
 	//add to library if selected
@@ -390,6 +390,11 @@ app.post("/addLog", async (req, res) => {
 		date = "(SELECT TO_DATE('"+req.body.year + req.body.week + req.body.day +"', 'IYYYIWID'))";
 	}
 
+	if(req.body.imageurl==''){
+		req.body.imageurl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Pictograms-nps-food_service-2.svg/640px-Pictograms-nps-food_service-2.svg.png'
+		console.log('imgurl2', req.body.imageurl);
+	  }
+	console.log('imgurl2', req.body.imageurl);
 
 	//if reciped doesn't already exist in database add it and get new recipeid
 	if (recID == "None") {
@@ -563,8 +568,8 @@ app.post("/addSpoonToLib",async (req,res)=> {
 	console.log(options.url)
  
 	await axios.request(options).then(function (results) {
-		// console.log(typeof results.data.results);
-		// console.log(results.data)
+		//console.log(results.data)
+		SpoonRecipeImage = results.data.image;
 		SpoonRecipeName = results.data.title;
 		SpoonRecipeData = results.data.nutrition.nutrients;
 	})
@@ -575,7 +580,7 @@ app.post("/addSpoonToLib",async (req,res)=> {
 
 	console.log(SpoonRecipeData);
 	
-	recipeData={name:SpoonRecipeName};
+	recipeData={name:SpoonRecipeName,imageurl:SpoonRecipeImage};
 	nutrientList.forEach(function(nutr){
 		SpoonRecipeData.forEach(function(n,i) {
 			if (n.name.toUpperCase()==nutr.toUpperCase()) {
@@ -587,7 +592,14 @@ app.post("/addSpoonToLib",async (req,res)=> {
 	console.log("RECIPE",recipeData);
 
 
-	await addToRecipes(recipeData, req.session.user.ID,true);
+	addToRecipes(recipeData, req.session.user.ID,true)
+		.catch(function(error){
+			res.render('pages/discover',{
+				results: [],
+				error: true,
+				message: 'Add Recipe Failed'
+			});
+		});
 
 });
 
