@@ -11,8 +11,11 @@
     <p></p>
     <h4 class="text-center">
         <form action="/calendar" method="GET">
-           <input type="hidden" id="year" name="year" value=2022 />
-            <button name="week" value="<%= parseInt(weeknum)-1 %>" type="submit" class="btn" style="border-color: black;"><</button>  <%= dayrange[0] %> to <%= dayrange[1] %> <button name="week" value="<%= parseInt(weeknum)+1 %>" type="submit" class="btn" style="border-color: black;">></button>
+           <input type="hidden" id="year" name="year" value=<%- year %> />
+           <input type="hidden" id="week" name="week" value=<%- week %> />
+            <button name="weekshift" value="-1" type="submit" class="btn" style="border-color: rgb(70, 0, 150);background-color: rgb(243, 232, 255); color:rgb(70, 0, 150); font-weight: bold;"><</button> 
+            <%= dayrange[0] %> to <%= dayrange[1] %> 
+            <button name="weekshift" value="1" type="submit" class="btn" style="border-color: rgb(70, 0, 150);background-color: rgb(243, 232, 255); color:rgb(70, 0, 150); font-weight: bold;">></button>
         </form></h4>
     <p></p>
     <div class="container">
@@ -21,7 +24,7 @@
 
           <%
           function mealString(item,func){
-            return "{recipeid:'"+item.recipeid+"',name:'"+item.name+"',servings:'"+item.servings+"',nutrients: {"+
+            return "{recipeid:'"+item.recipeid+"',name:'"+item.name+"',servings:'"+item.servings+"',imageurl:'"+item.imageurl+"',nutrients: {"+
                                       nutrients.fields.map(func).join(",")+"}}";
           }  
           
@@ -34,11 +37,15 @@
                 const CALENDAR_DAYS = [
                 "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
                 ];
+
+                const COLOR = [
+                "rgb(200, 60, 167)", "red", "orange","gold","rgb(0, 172, 69)","rgb(0, 39, 182)", "rgb(116, 0, 218)"
+                ];
     
                 var res = '';
                 var i;
                 for (i = 1; i < 8; i++) {
-                  var weekday = {year: year, week: weeknum, day: i};
+                  var weekday = {year: year, week: week, day: i};
                   res +=  '<div class="card" style="width:150px; border-color:black;" >'+
                     '<div class="h6 text-center position-relative py-2">'+
                       '<form  action="/home" method="GET" >'+
@@ -53,7 +60,7 @@
                     weeklog.forEach(function(item){
                     if (item.day == i % 7){
                       const logMeal=mealString(item,nutr=> nutr+":"+ item.nutrients[nutr]);
-                      res += '<button id="view" type="button" class="btn btn-primary" style="width: 125px; background-color: white; border-color: black; color: black; text-align: center; margin-bottom: 2px;" onclick="viewMealModal(' +logMeal+')">' + item.name +'</button>';
+                      res += '<button id="view" type="button" class="btn btn-primary" style="width: 125px; background-color: white; border-color: ' + COLOR[i%7] +'; color: ' + COLOR[i%7] +'; text-align: center; margin-bottom: 2px;" onclick="viewMealModal(' +logMeal+')">' + item.name +'</button>';
                     }
 
                   });

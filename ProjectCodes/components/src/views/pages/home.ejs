@@ -7,27 +7,26 @@
 <main>
   
   <div class="container">
-	<h2>Welcome User : <%= username %></h2>
+	<h2>Welcome, <%= username %></h2>
+  <p></p>
   
-  <div style="display:flex">
+  <div class="text-center">
     <form action="/home" method="GET">
-      <input type="hidden" name="week" value=<%- parseInt(weekday.week)+Math.floor((parseInt(weekday.day)-1-1)/7) %> />
-      <input type="hidden" name="day" value=<%- parseInt(weekday.day)-1-Math.floor((parseInt(weekday.day)-1-1)/7)*7 %> />
-      <input type="hidden" name="year" value=2022 />
-      <button type="submit" class="btn" style="border-color: black;">
-        <</button>
-    </form>
-    <h4 style="margin-left:15px;margin-right:15px">
-      <%= currdate %>
-    </h4>
-    <form action="/home" method="GET">
-      <input type="hidden" name="week" value=<%- parseInt(weekday.week)+Math.floor((parseInt(weekday.day)-1+1)/7) %> />
-      <input type="hidden" name="day" value=<%- parseInt(weekday.day)+1-Math.floor((parseInt(weekday.day)-1+1)/7)*7 %> />
-      <input type="hidden" name="year" value=2022 />
-      <button type="submit" class="btn" style="border-color: black;">></button>
+      <input type="hidden" name="week" value=<%- weekday.week %> />
+      <input type="hidden" name="day" value=<%- weekday.day%> />
+      <input type="hidden" name="year" value=<%- weekday.year %> />
+      <div class="container">
+        
+      
+        <h4 style="margin-left:15px;margin-right:15px;"><button type="submit" class="btn" style="border-color: rgb(70, 0, 150);background-color: rgb(243, 232, 255); color:rgb(70, 0, 150); font-weight: bold; " name="dayshift" value="-1"><</button>
+        <%= currdate %>
+        <button type="submit" class="btn" style="border-color: rgb(70, 0, 150); background-color: rgb(243, 232, 255);color:rgb(70, 0, 150);font-weight: bold;" name="dayshift" value="1">></button>
+
+      </h4>
+    </div>
+        
     </form>
   </div>
-
 
   <%
   function mealString(item,func){
