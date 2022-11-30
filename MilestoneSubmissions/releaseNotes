@@ -1,5 +1,78 @@
 Release Notes:
 
+11/29/2022
+
+ -Add Meal Modal
+  - Improvements/fixes to Meal Modal; associated image displays in all modal forms, and the user is able to add an image url as part of a new meal. A default image displays in its absence.
+
+ -Discover Page development
+  - When adding to library from the discover page, a 'success' message now shows for each recipe added.
+
+ -Calendar Page development
+  - Adjusted date functionality to handle jumping between years (when trying to transition, year would not always change, day would get skipped, etc.)
+  - Cosmetic adjustments; meal names display in different colors on different days.
+
+ -Home Page development
+  - Modified welcome message and date display
+  - Fixed a bug where, on Sunday, jumping back a day took you back a week.
+
+11/27/2022
+
+ -Library Page development
+  - Addressed issue where library loaded with previous search
+
+ -Add Meal Modal
+  - Updated display
+  - Modal adapted to work with Add and Edit features on home, and View on Calendar
+  - Nutrition is now multiplied by servings
+  - Fixed bug where closing an edited meal populated with edits when adding a new meal
+  - Reorganized back-end functionality
+  - Nutrients handled by app are set by a constant list
+
+ -Home Page development
+  - User can now navigate between days
+  - User can delete meal or edit servings on day's log
+  - User can add/edit/delete on previous days' logs
+  - Changed button appearance
+
+ -Discover Page development
+  - Clicking Add to Library now adds meal to library
+
+ -Calendar Page development
+  - Fixed bug with how dates displayed, and where meals showed up under the wrong day
+  - Week shows date range instead of just week number
+  - Clicking on a day now takes the user to that day's log
+  - User can view meal by clicking on its name on the Calendar
+
+11/20/2022
+
+ -General
+  - Swappwed fiber for fat and sodium for carbs across app
+
+ -Profile Development
+  - Profile page functional
+  - User can add to/update profile with information about them and their favorite foods
+  - Fixed bug in addProfile route where favorites was not updating
+  - Fixed formatting
+
+ -Account Utilities
+  - Updated login functionality
+  - Added logout functionality
+
+11/18/2022
+
+ -Account Utilities
+  - Html tag fix
+  - Updated UI, moved header outside the table
+  - Adjusted format on login (moved header out of table element, fixed syntax)
+  - Added logout page
+
+ -Testing
+  - Inserted profile for test account
+
+ -Database
+  - Added profile table to store user's 'about me' and favorite foods
+
 11/17/2022
  -Home Page development
   - Fixed bug where an empty log prevented home from loading due to undefined date; date now stands alone instead of drawing from a meal log entry.
@@ -31,7 +104,7 @@ Release Notes:
   -The user can input a string used in the API call to generate specific results
   -The user can follow a recipe back to its source
  
- -Accout Utilities
+ -Account Utilities
   -Added user authentication logic, discover cannot be reached without signing in
   -User is able to create an account / login to the application
  
