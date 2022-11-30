@@ -37,3 +37,12 @@ What we discussed:
 - Go through project guide step by step and ensure we are up to date.
 - Presentation slot needs to be booked.
 - No meeting over break; team should wrap up development and start working on presentation.
+
+11-30-2022
+
+What we discussed:
+- Complete release notes with appropriate tags (weeks 1-4 and final release).
+- Read Prof. Nath's email and announcements carefully.
+- Ensure that report, presentation, and peer evaluation is turned in on time.
+- Include test results write-up.
+- All information asked for in presentation guide should be on the slides.
