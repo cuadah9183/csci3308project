@@ -382,13 +382,7 @@ app.post("/addLog", async (req, res) => {
 
 	var recID = req.body.saveMeal;
 
-	var date;
-	if (currdate.day == mealdate.day && currdate.week==mealdate.week && currdate.year==mealdate.year){
-		date = sqltimestamp;
-	}
-	else{
-		date = "(SELECT TO_DATE('"+req.body.year + req.body.week + req.body.day +"', 'IYYYIWID'))";
-	}
+	const date = "(SELECT TO_TIMESTAMP('"+req.body.year + req.body.week + req.body.day +req.body.mealtime+"', 'IYYYIWIDHH24:MI'))";
 
 	if(req.body.imageurl==''){
 		req.body.imageurl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Pictograms-nps-food_service-2.svg/640px-Pictograms-nps-food_service-2.svg.png'
@@ -418,10 +412,12 @@ app.post("/editLog", (req, res) => {
 	const servings = req.body.servings;
 	const mealdate = {week: req.body.week, day: req.body.day, year:req.body.year};
 
-	const queryEdit = "UPDATE log SET servings = $1 WHERE mealid = $2;";
+	const time = "(SELECT TO_TIMESTAMP('"+req.body.year + req.body.week + req.body.day +req.body.mealtime+"', 'IYYYIWIDHH24:MI'))";
+
+	const queryEdit = "UPDATE log SET servings = $1, time ="+time+" WHERE mealid = $2;";
 
 	db.task('editMeal', task => {
-		return task.any(queryEdit, [servings, mealID])
+		return task.any(queryEdit, [servings,  mealID])
 	})
 	.then(() => {
 		res.redirect("/home?week=" + mealdate.week +"&day=" + mealdate.day +"&year="+mealdate.year);
@@ -471,13 +467,13 @@ app.get("/calendar", async (req, res) =>{
 	const week=date.week;
 	const year=date.year;
 
-	var logquery = "SELECT r.recipeID, name, " +nutrientList.join(", ") + ", imageurl, date(time) AS date, date_part('isodow', time) AS day, date_part('week', time) AS week, date_part('year', time) AS year, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = $2;";
+	var logquery = "SELECT r.recipeID, name, " +nutrientList.join(", ") + ", imageurl, date(time) AS date, date_part('hour', time) AS h, date_part('minute', time) AS m, date_part('isodow', time) AS day, date_part('week', time) AS week, date_part('isoyear', time) AS year, servings FROM recipe r INNER JOIN log l ON l.recipeID = r.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1 AND date_part('week', time) = $2 AND date_part('isoyear', time) = $3;";
 
 	//get day range for the current week
     const weekdayrange=[await getDateFromWeekday({year:year, week:week,day:1}),await getDateFromWeekday({year:year, week:week,day:7})];
 	console.log(weekdayrange);
 
-	weeklog=await getMeals(logquery,[user.username, week]);
+	weeklog=await getMeals(logquery,[user.username, week,year]);
 	console.log('calmeals',weeklog);
 	res.render("pages/calendar", {username: req.session.user.user.username, weeklog: weeklog, year:year,week: week,dayrange:[prettyDate(weekdayrange[0]),prettyDate(weekdayrange[1])], nutrients:{fields: nutrientList,info:nutrientInfo}});
 
