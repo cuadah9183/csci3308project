@@ -323,7 +323,7 @@ async function addToLog(userID,recipeID,servings,date){
 
 app.get("/home", async (req, res) => {
 
-	console.log("in home page, username = " + user.username);
+	console.log("in home page, username = " + req.session.user.user.username);
 	console.log("Request", req.query, Object.keys(req.query).length);
 
 	var weeknday;
@@ -345,11 +345,11 @@ app.get("/home", async (req, res) => {
 
 	//get meal log for the chosen day
 	const logquery = "SELECT mealid, date_part('hour', time) AS h, date_part('minute', time) AS m, time, r.recipeid, servings, name,"+nutrientList.join(", ")+ ", imageurl FROM users u INNER JOIN log l ON l.userID = u.userID INNER JOIN recipe r ON r.recipeID = l.recipeID WHERE username = $1 AND date_part('week', time) = $2 AND date_part('isodow', time) = $3 AND date_part('isoyear', time) = $4 ORDER BY time ASC;";
-	const log =await getMeals(logquery,[user.username, weeknday.week, weeknday.day,weeknday.year]);
+	const log =await getMeals(logquery,[req.session.user.user.username, weeknday.week, weeknday.day,weeknday.year]);
 
 	//get the user's library
 	const libquery = "SELECT * FROM recipe r INNER JOIN library l ON r.recipeID = l.recipeID INNER JOIN users u ON u.userID = l.userID WHERE username = $1;";
-	const library =await getMeals(libquery,[user.username]);
+	const library =await getMeals(libquery,[req.session.user.user.username]);
 
 	//get current date 
 	const currentdate=await getDateFromWeekday(weeknday);
@@ -454,7 +454,7 @@ app.post("/delLog",(req,res) =>{
 /*-----end log interface----*/
 
 app.get("/calendar", async (req, res) =>{
-	console.log("loading calendar for " + user.username);
+	console.log("loading calendar for " + req.session.user.user.username);
 	
 	//set week if no week provided
 	var date;
@@ -473,7 +473,7 @@ app.get("/calendar", async (req, res) =>{
     const weekdayrange=[await getDateFromWeekday({year:year, week:week,day:1}),await getDateFromWeekday({year:year, week:week,day:7})];
 	console.log(weekdayrange);
 
-	weeklog=await getMeals(logquery,[user.username, week,year]);
+	weeklog=await getMeals(logquery,[req.session.user.user.username, week,year]);
 	console.log('calmeals',weeklog);
 	res.render("pages/calendar", {username: req.session.user.user.username, weeklog: weeklog, year:year,week: week,dayrange:[prettyDate(weekdayrange[0]),prettyDate(weekdayrange[1])], nutrients:{fields: nutrientList,info:nutrientInfo}});
 
