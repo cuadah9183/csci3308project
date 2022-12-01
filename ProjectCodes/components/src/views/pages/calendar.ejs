@@ -23,13 +23,15 @@
 
 
           <%
+          function two_str(s) {
+            return parseInt(s).toLocaleString(undefined, {minimumIntegerDigits: 2})
+          }
           function mealString(item,func){
-            return "{recipeid:'"+item.recipeid+"',name:'"+item.name+"',servings:'"+item.servings+"',imageurl:'"+item.imageurl+"',nutrients: {"+
+            return "{mealid:'"+item.mealid+"',recipeid:'"+item.recipeid+"',name:'"+item.name+"',mealtime:'"+two_str(item.h)+':'+two_str(item.m)+"',servings:'"+item.servings+"',imageurl:'"+item.imageurl+"',nutrients: {"+
                                       nutrients.fields.map(func).join(",")+"}}";
           }  
           
           %>
-
             <% 
               
 
@@ -58,7 +60,7 @@
                   '<div class="meal-container">';
                   if (weeklog){
                     weeklog.forEach(function(item){
-                    if (item.day == i % 7){
+                    if (parseInt(item.day)%7 == i%7){
                       const logMeal=mealString(item,nutr=> nutr+":"+ item.nutrients[nutr]);
                       res += '<button id="view" type="button" class="btn btn-primary" style="width: 125px; background-color: white; border-color: ' + COLOR[i%7] +'; color: ' + COLOR[i%7] +'; text-align: center; margin-bottom: 2px;" onclick="viewMealModal(' +logMeal+')">' + item.name +'</button>';
                     }

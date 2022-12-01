@@ -30,8 +30,11 @@
 
 
   <%
+  function two_str(s) {
+    return parseInt(s).toLocaleString(undefined, {minimumIntegerDigits: 2})
+  }
   function mealString(item,func){
-    return "{mealid:'"+item.mealid+"',recipeid:'"+item.recipeid+"',name:'"+item.name+"',servings:'"+item.servings+"',imageurl:'"+item.imageurl+"',nutrients: {"+
+    return "{mealid:'"+item.mealid+"',recipeid:'"+item.recipeid+"',name:'"+item.name+"',mealtime:'"+two_str(item.h)+':'+two_str(item.m)+"',servings:'"+item.servings+"',imageurl:'"+item.imageurl+"',nutrients: {"+
                               nutrients.fields.map(func).join(",")+"}}";
   }  
   
@@ -44,7 +47,7 @@
     
       
   
-      const defaultMeal= mealString({servings: 1, mealid:'None', recipeid: 'None', imageurl: '', name: ''},item=>item+":''");
+      const defaultMeal= mealString({servings: 1, mealid:'None', h:'--', m:'--', recipeid: 'None', imageurl: '', name: ''},item=>item+":''");
       const dateString= "{year:" + weekday.year + ", week:" + weekday.week + ", day:" + weekday.day + "}";
 
       if (daylog){

@@ -51,7 +51,7 @@ function recipeAutocomplete(inp, entries) {
           var j;
           for (j = 0; j < entries.length; j++) {//last one entered if dupes
             if (entries[j].name.toUpperCase() == inp.value.toUpperCase()) {
-              setMealModal(Object.assign({}, entries[j],{servings:document.querySelector(`#servings`).value}));
+              setMealModal(Object.assign({}, entries[j],{servings:document.querySelector(`#servings`).value,mealtime:document.getElementById('mealtime').value}));
               
 
             }
@@ -76,7 +76,6 @@ function resetRecID(){
 
 function showImage(){
   document.getElementById('imgblock').style.display="none";
-  //document.getElementById('img').src = meal.imageurl;
   document.getElementById('img').style.display="inline";
 
 }
@@ -90,6 +89,8 @@ function viewMealModal(meal) {
   setMealModal(meal);
   document.getElementById('modalTitle').innerHTML='View Meal';
   document.getElementById('mealName').disabled = true;
+  document.getElementById('mealtime').disabled=true;
+  document.querySelector(`#servings`).disabled = true;
   for (const [key, value] of Object.entries(meal.nutrients)) {
     document.getElementById(key).disabled = true;
   }
@@ -113,7 +114,9 @@ function setMealModal(meal,weekday) {
   document.getElementById('img').style.display="inline";
   document.getElementById('imgblock').style.display="inline-flex";
   document.getElementById('imageurl').value = meal.imageurl;
-  
+  console.log("mt",meal.mealtime);
+  document.getElementById('mealtime').value=meal.mealtime;
+
   document.querySelector(`#servings`).value = meal.servings;
   document.querySelector(`#saveMeal`).value = meal.recipeid;
   document.getElementById('mealName').value = meal.name;
