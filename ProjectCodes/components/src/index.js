@@ -518,7 +518,7 @@ app.get("/calendar", async (req, res) =>{
 				userquery += ' ORDER BY carbohydrates ASC;';
 			}
 			else if(req.query.sort == "FAT"){
-				userquery += ' ORDER BY fat DESC;';
+				userquery += ' ORDER BY fat ASC;';
 			} else {
 				userquery += ';';
 			}
@@ -668,11 +668,7 @@ app.get("/discover",(req, res) => {
 
 //Get LOGOUT 
 app.get('/logout', (req, res) => {
-	req.session.user = {
-		api_key: '',
-		username: '',
-		status : "created"
-	};
+	req.session.user = undefined;
 	req.session.save();
 	console.log("api_key and username deleted");
   res.render("pages/logout");
