@@ -731,7 +731,7 @@ app.get("/addProfile", async (req, res) =>{
 				db.any(query1, [username, mydescription, myfavorites]
 				)
 				.then(() =>{
-					res.render("pages/profile", {mydescription : row.mydescription, favorites : myfavorites, username : username});
+					res.render("pages/profile", {mydescription : mydescription, favorites : myfavorites, username : username});
 				})
 			}
 			else {
