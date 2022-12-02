@@ -1,7 +1,7 @@
 CREATE TABLE users (
     userID SERIAL PRIMARY KEY,
     username VARCHAR(45) NOT NULL,
-    password VARCHAR(45) NOT NULL
+    password VARCHAR(200) NOT NULL
 );
 
 CREATE TABLE recipe(
@@ -44,4 +44,4 @@ CREATE TABLE profile (
 );
 
 INSERT INTO users (username,password)
-    VALUES ('t','t');
+    VALUES ('t','$2b$10$HLdoFVwuFzwtgDqr/dbybeA3u4gYF9oo4XYb76qmeUJsqAZGMnbFW');
